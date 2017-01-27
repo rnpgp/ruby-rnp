@@ -422,7 +422,7 @@ module LibNetPGP
            :hashtype,   :pgp_hash_alg_t
   end
 
-  class PGPKeyDataKey < FFI::Struct
+  class PGPKeyDataKey < FFI::Union
     layout :pubkey, PGPPubKey,
            :seckey, PGPSecKey
   end
