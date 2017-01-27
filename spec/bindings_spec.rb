@@ -48,7 +48,6 @@ describe 'rsa key generation' do
       expect(
         LibNetPGP::pgp_parse(stream, 1)
       ).to eql(1)
-      print(results)
       expect(results).to eql([
         :PGP_PARSER_PTAG,
         :PGP_PTAG_CT_SIGNATURE_HEADER,
