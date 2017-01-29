@@ -1,6 +1,6 @@
-require 'netpgp/bindings/libnetpgp'
-require 'netpgp/bindings/libc'
-require 'netpgp/bindings/libopenssl'
-require 'netpgp/bindings/dynarray'
-require 'netpgp/bindings/utils'
+require_relative 'netpgp/bindings/libnetpgp'
+require_relative 'netpgp/bindings/libc'
+require_relative 'netpgp/bindings/libopenssl'
+require_relative 'netpgp/bindings/dynarray'
+require_relative 'netpgp/bindings/utils'
 
