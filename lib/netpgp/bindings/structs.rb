@@ -391,7 +391,7 @@ module LibNetPGP
            :decrypt_key,        :pointer
   end
 
-  class PGPStream < FFI::Struct
+  class PGPStream < FFI::ManagedStruct
     NTAGS = 0x100
     layout :ss_raw,     [:uint8, NTAGS / 8],
            :ss_parsed,  [:uint8, NTAGS / 8],
@@ -406,7 +406,11 @@ module LibNetPGP
            :flags,      :uint, # bitfields
            :virtualc,   :uint,
            :virtualoff, :uint,
-           :virtualpkg, :pointer
+           :virtualpkt, :pointer
+
+    def self.release(ptr)
+      LibNetPGP::pgp_stream_free(ptr)
+    end
   end
 
   class PGPIO < FFI::Struct
