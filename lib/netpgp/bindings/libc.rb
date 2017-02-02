@@ -10,5 +10,12 @@ module LibC
   attach_function :free,
                   [:pointer],
                   :void
+
+  attach_function :fdopen,
+                  [:int, :string],
+                  :pointer
+  attach_function :fclose,
+                  [:pointer],
+                  :int
 end
 
