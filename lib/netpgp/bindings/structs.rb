@@ -419,12 +419,18 @@ module LibNetPGP
            :res,  :pointer
   end
 
-  class PGPKeyring < FFI::Struct
+  class PGPKeyring < FFI::ManagedStruct
     layout :keyc,       :uint,
            :keyvsize,   :uint,
            :keys,       :pointer,
            :hashtype,   :pgp_hash_alg_t
-  end
+
+    def self.release(ptr)
+      LibNetPGP::pgp_keyring_free(ptr)
+      LibC::free(ptr)
+    end
+
+   end
 
   class PGPKeyDataKey < FFI::Union
     layout :pubkey, PGPPubKey,
