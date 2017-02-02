@@ -475,5 +475,23 @@ module LibNetPGP
            :revocation,       PGPRevoke
   end
 
+  class PGPMemory < FFI::Struct
+    layout :buf,        :pointer,
+           :length,     :size_t,
+           :allocated,  :size_t,
+           :mmapped,    :uint
+  end
+
+  class PGPValidation < FFI::Struct
+    layout :validc,         :uint,
+           :valid_sigs,     :pointer,
+           :invalidc,       :uint,
+           :invalid_sigs,   :pointer,
+           :unknownc,       :uint,
+           :unknown_sigs,   :pointer,
+           :birthtime,      :time_t,
+           :duration,       :time_t
+  end
+
 end
 
