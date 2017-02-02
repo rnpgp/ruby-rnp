@@ -409,7 +409,7 @@ module LibNetPGP
            :virtualpkt, :pointer
 
     def self.release(ptr)
-      LibNetPGP::pgp_stream_free(ptr)
+      LibNetPGP::pgp_stream_delete(ptr)
     end
   end
 
