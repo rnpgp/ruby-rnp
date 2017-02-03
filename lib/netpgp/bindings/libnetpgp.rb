@@ -80,6 +80,12 @@ module LibNetPGP
   attach_function :pgp_encrypt_buf,
                   [PGPIO.by_ref, :pointer, :size_t, PGPKey.by_ref, :uint, :string],
                   :pointer
+  attach_function :pgp_decrypt_file,
+                  [PGPIO.by_ref, :string, :string, PGPKeyring.by_ref, PGPKeyring.by_ref, :uint, :uint, :uint, :pointer, :int, :pgp_cbfunc_t],
+                  :uint
+  attach_function :pgp_decrypt_buf,
+                  [PGPIO.by_ref, :pointer, :size_t, PGPKeyring.by_ref, PGPKeyring.by_ref, :uint, :uint, :pointer, :int, :pgp_cbfunc_t],
+                  :pointer
 
   attach_function :pgp_export_key,
                   [PGPIO.by_ref, PGPKey.by_ref, :string],
