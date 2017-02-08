@@ -43,7 +43,7 @@ pgpio[:outs] = stdout_fp
 pgpio[:errs] = stderr_fp
 pgpio[:res] = stdout_fp
 
-armored = options[:output_armored] ? 1 : 0
+armored = options[:armored] ? 1 : 0
 
 validation = LibNetPGP::PGPValidation.new
 ret = LibNetPGP::pgp_validate_file(pgpio, validation, input_filename, nil, armored, keyring)
