@@ -66,7 +66,7 @@ module LibNetPGP
                   :int
   attach_function :pgp_sign_buf,
                   [PGPIO.by_ref, :pointer, :size_t, PGPSecKey.by_ref, :int64, :uint64, :string, :uint, :uint],
-                  PGPMemory.by_ref
+                  :pointer
   attach_function :pgp_validate_file,
                   [PGPIO.by_ref, PGPValidation.by_ref, :string, :string, :int, PGPKeyring.by_ref],
                   :uint
