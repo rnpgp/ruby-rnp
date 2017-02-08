@@ -3,14 +3,14 @@ require 'optparse'
 
 require_relative '../lib/netpgp'
 
-options = {armored: false}
+options = {armored: false, keys_armored: false}
 parser = OptionParser.new do |opts|
   opts.banner = "Usage: #{$0} [options] <pubkey> <input-file> <output-file>"
   opts.on('-k', '--keys-armored', 'Seckey is ASCII armored') do
     options[:keys_armored] = true
   end
-  opts.on('-a', '--armored', 'Output file will be ASCII armored') do |a|
-    options[:armored] = a
+  opts.on('-a', '--armored', 'Output file will be ASCII armored') do
+    options[:armored] = true
   end
   opts.on('-h', '--help', 'Print this help') do
     puts opts
