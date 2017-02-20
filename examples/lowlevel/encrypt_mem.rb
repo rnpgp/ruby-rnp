@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 require 'optparse'
 
-require_relative '../lib/netpgp'
+require_relative '../../lib/netpgp'
 
 options = {armored: false, keys_armored: false}
 parser = OptionParser.new do |opts|

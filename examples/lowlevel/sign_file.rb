@@ -2,7 +2,7 @@
 require 'optparse'
 require 'io/console'
 
-require_relative '../lib/netpgp'
+require_relative '../../lib/netpgp'
 
 options = {keys_armored: false, cleartext: false, output_armored: false, detached: false}
 parser = OptionParser.new do |opts|

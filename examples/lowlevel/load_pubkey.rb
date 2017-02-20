@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-require_relative '../lib/netpgp'
+require_relative '../../lib/netpgp'
 
 def bignum_byte_count(bn)
   bn.to_s(16).length / 2

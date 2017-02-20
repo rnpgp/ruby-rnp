@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-require_relative '../lib/netpgp'
+require_relative '../../lib/netpgp'
 
 def usage
   puts "Usage: #{$0} <file>"
