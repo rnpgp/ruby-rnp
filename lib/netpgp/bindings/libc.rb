@@ -7,9 +7,16 @@ module LibC
   attach_function :calloc,
                   [:size_t, :size_t],
                   :pointer
+  attach_function :realloc,
+                  [:pointer, :size_t],
+                  :pointer
   attach_function :free,
                   [:pointer],
                   :void
+
+  attach_function :memset,
+                  [:pointer, :int, :size_t],
+                  :pointer
 
   attach_function :fdopen,
                   [:int, :string],
