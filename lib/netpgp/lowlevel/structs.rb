@@ -507,5 +507,10 @@ module LibNetPGP
            :errors,     :pointer
   end
 
+  class PGPFingerprint < FFI::Struct
+    layout :fingerprint,    [:uint8, PGP_FINGERPRINT_SIZE],
+           :length,         :uint,
+           :hashtype,       :pgp_hash_alg_t
+  end
 end
 
