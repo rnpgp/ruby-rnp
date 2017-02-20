@@ -493,5 +493,19 @@ module LibNetPGP
            :duration,       :time_t
   end
 
+  class PGPWriter < FFI::Struct
+    layout :writer,     :pointer,
+           :finaliser,  :pointer,
+           :destroyer,  :pointer,
+           :arg,        :pointer,
+           :next,       :pointer,
+           :io,         :pointer
+  end
+
+  class PGPOutput < FFI::Struct
+    layout :writer,     PGPWriter,
+           :errors,     :pointer
+  end
+
 end
 
