@@ -10,6 +10,13 @@ def print_pubkey(pubkey, indent=0)
     puts "#{' ' * indent}Version: #{pubkey[:version]}"
     puts "#{' ' * indent}Creation Time: #{Time.at(pubkey[:birthtime])}"
     puts "#{' ' * indent}Algorithm: #{pubkey[:alg]}"
+    case pubkey[:alg]
+    when :PGP_PKA_RSA
+      n = LibNetPGP::bn2hex pubkey[:key][:rsa][:n]
+      e = LibNetPGP::bn2hex pubkey[:key][:rsa][:e]
+      puts "#{' ' * indent}n: 0x#{n}"
+      puts "#{' ' * indent}e: 0x#{e}"
+    end
 end
 
 def print_seckey(seckey, indent=0)
