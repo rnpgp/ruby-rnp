@@ -8,5 +8,8 @@ module LibOpenSSL
   attach_function :BN_bn2hex,
                   [:pointer],
                   :strptr
+  attach_function :BN_hex2bn,
+                  [:pointer, :string],
+                  :int
 end
 
