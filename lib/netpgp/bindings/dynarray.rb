@@ -25,13 +25,13 @@ module LibNetPGP
     when :pointer
       ptrs = items.read_array_of_pointer(count)
       ptrs[index]
-     when :string
+    when :string
       ptrs = items.read_array_of_pointer(count)
       ptrs[index].read_string
-     else
+    else
       ptrs = FFI::Pointer.new(type, items)
       type.new(ptrs[index])
-     end
+    end
   end
 
 end
