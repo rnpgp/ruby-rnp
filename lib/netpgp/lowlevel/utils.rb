@@ -12,7 +12,7 @@ module LibNetPGP
 
   # Ruby Fixnum to BIGNUM*
   def self.num2bn(num)
-    bn_ptr = FFI::MemoryPointer.new :pointer
+    bn_ptr = FFI::MemoryPointer.new(:pointer)
     hex = num.to_s(16)
     ret = LibOpenSSL::BN_hex2bn(bn_ptr, hex)
     raise 'Fixnum to BIGNUM conversion failed' if ret == 0

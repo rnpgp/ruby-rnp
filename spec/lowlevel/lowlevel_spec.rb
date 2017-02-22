@@ -2,14 +2,14 @@ require 'netpgp.rb'
 
 describe 'rsa key generation' do
   before(:all) {
-      @key = LibNetPGP::pgp_rsa_new_selfsign_key(1024, 65537, 'John Doe', 'SHA1', 'cast5')
-      expect(@key.null?).to be false
-      expect(
-        LibNetPGP::pgp_add_userid(@key, 'Joe Doe')
-      ).to_not eql nil
-      expect(
-        LibNetPGP::pgp_add_selfsigned_userid(@key, 'Jane Doe')
-      ).to eql 1
+    @key = LibNetPGP::pgp_rsa_new_selfsign_key(1024, 65537, 'John Doe', 'SHA1', 'cast5')
+    expect(@key.null?).to be false
+    expect(
+      LibNetPGP::pgp_add_userid(@key, 'Joe Doe')
+    ).to_not eql nil
+    expect(
+      LibNetPGP::pgp_add_selfsigned_userid(@key, 'Jane Doe')
+    ).to eql 1
   }
   after(:all) {
     LibNetPGP::pgp_keydata_free(@key)
