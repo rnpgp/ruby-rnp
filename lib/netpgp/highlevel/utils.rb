@@ -1,5 +1,27 @@
 module NetPGP
 
+def self.bignum_byte_count(bn)
+  # Note: This probably assumes that the ruby implementation
+  # uses the same BN representation that libnetpgp does.
+  # It may be better to convert and use BN_num_bytes (or bits).
+  bn.to_s(16).length / 2
+end
+
+def self.stream_errors(stream)
+  error_ptr = stream[:errors]
+
+  errors = []
+  until error_ptr.null?
+    error = LibNetPGP::PGPError.new(error_ptr)
+
+    error_desc = "#{error[:file]}:#{error[:line]}: #{error[:errcode]} #{error[:comment]}"
+    errors.push(error_desc)
+
+    error_ptr = error[:next]
+  end
+  errors
+end
+
 def self.mpi_from_native(native)
   mpi = {}
   native.members.each {|member|
@@ -21,7 +43,7 @@ def self.mpis_from_native(alg, native)
     when :PGP_PKA_ELGAMAL
       material = native[:key][:elgamal]
     else
-      raise 'Unsupported PK algorithm'
+      raise "Unsupported PK algorithm: #{alg}"
   end
   NetPGP::mpi_from_native(material)
 end
