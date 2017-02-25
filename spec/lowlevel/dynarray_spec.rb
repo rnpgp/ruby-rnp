@@ -1,10 +1,6 @@
 require 'netpgp.rb'
 
 describe 'dynarray utils' do
-  before(:all) {
-    @key = LibNetPGP::PGPKey.new
-  }
-
   it 'expands correctly' do
     key = LibNetPGP::PGPKey.new
     expect(
