@@ -13,6 +13,7 @@ class SecretKey
                 :mpi,
                 :userids,
                 :parent,
+                :subkeys,
                 :raw_subpackets,
                 :encrypted
 
@@ -26,8 +27,44 @@ class SecretKey
     @mpi = {}
     @userids = []
     @parent = nil
+    @subkeys = []
     @raw_subpackets = []
     @encrypted = false
+  end
+
+  def encrypted?
+    @encrypted
+  end
+
+  def decrypt(data, passphrase=nil, armored=true)
+    begin
+      rd, wr = IO.pipe
+      wr.write(passphrase + "\n")
+      native_keyring_ptr = LibC::calloc(1, LibNetPGP::PGPKeyring.size)
+      native_keyring = LibNetPGP::PGPKeyring.new(native_keyring_ptr)
+      NetPGP::keyring_to_native([self], native_keyring)
+      pgpio = LibNetPGP::PGPIO.new
+      pgpio[:outs] = LibC::fdopen($stdout.to_i, 'w')
+      pgpio[:errs] = LibC::fdopen($stderr.to_i, 'w')
+      pgpio[:res] = pgpio[:errs]
+      data_ptr = FFI::MemoryPointer.new(:uint8, data.bytesize)
+      data_ptr.write_bytes(data)
+      passfp = LibC::fdopen(rd.to_i, 'r')
+      mem_ptr = LibNetPGP::pgp_decrypt_buf(pgpio, data_ptr, data_ptr.size,
+                                           native_keyring, nil,
+                                           armored ? 1 : 0, 0, passfp, 1, nil)
+      return nil if mem_ptr.null?
+      mem = LibNetPGP::PGPMemory.new(mem_ptr)
+      mem[:buf].read_bytes(mem[:length])
+    ensure
+      rd.close
+      wr.close
+    end
+  end
+
+  def add_subkey(subkey)
+    subkey.parent = self
+    @subkeys.push(subkey)
   end
 
   def self.from_native(sk, encrypted=false)
@@ -67,36 +104,6 @@ class SecretKey
       packet[:raw].write_bytes(bytes)
       LibNetPGP::dynarray_append_item(native_key, 'packet', LibNetPGP::PGPSubPacket, packet)
     }
-  end
-
-  def encrypted?
-    @encrypted
-  end
-
-  def decrypt(data, passphrase=nil, armored=true)
-    begin
-      rd, wr = IO.pipe
-      wr.write(passphrase + "\n")
-      native_keyring_ptr = LibC::calloc(1, LibNetPGP::PGPKeyring.size)
-      native_keyring = LibNetPGP::PGPKeyring.new(native_keyring_ptr)
-      NetPGP::keyring_to_native([self], native_keyring)
-      pgpio = LibNetPGP::PGPIO.new
-      pgpio[:outs] = LibC::fdopen($stdout.to_i, 'w')
-      pgpio[:errs] = LibC::fdopen($stderr.to_i, 'w')
-      pgpio[:res] = pgpio[:errs]
-      data_ptr = FFI::MemoryPointer.new(:uint8, data.bytesize)
-      data_ptr.write_bytes(data)
-      passfp = LibC::fdopen(rd.to_i, 'r')
-      mem_ptr = LibNetPGP::pgp_decrypt_buf(pgpio, data_ptr, data_ptr.size,
-                                           native_keyring, nil,
-                                           armored ? 1 : 0, 0, passfp, 1, nil)
-      return nil if mem_ptr.null?
-      mem = LibNetPGP::PGPMemory.new(mem_ptr)
-      mem[:buf].read_bytes(mem[:length])
-    ensure
-      rd.close
-      wr.close
-    end
   end
 
 end

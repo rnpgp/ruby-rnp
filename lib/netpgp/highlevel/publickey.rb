@@ -9,7 +9,8 @@ class PublicKey
                 :public_key_algorithm,
                 :mpi,
                 :userids,
-                :parent
+                :parent,
+                :subkeys
 
   def initialize
     @version = nil
@@ -19,39 +20,7 @@ class PublicKey
     @mpi = {}
     @userids = []
     @parent = nil
-  end
-
-  def self.from_native(native)
-    pubkey = PublicKey.new
-    pubkey.version = LibNetPGP::enum_value(native[:version])
-    pubkey.creation_time = Time.at(native[:birthtime])
-    if pubkey.version == 3
-      pubkey.expiration_time = Time.at(native[:birthtime]) + (native[:days_valid] * 86400)
-    end
-    pubkey.public_key_algorithm = PublicKeyAlgorithm::from_native(native[:alg])
-    pubkey.mpi = NetPGP::mpis_from_native(native[:alg], native)
-    pubkey
-  end
-
-  def to_native(native)
-    native[:version] = @version
-    native[:birthtime] = @creation_time.to_i
-    if @version == 3 and @expiration_time 
-      native[:days_valid] = ((@expiration_time.to_i - @creation_time.to_i) / 86400).to_i
-    else
-      native[:duration] = (@expiration_time.to_i - @creation_time.to_i).to_i
-    end
-    native[:alg] = @public_key_algorithm
-    NetPGP::mpis_to_native(native[:alg], @mpi, native)
-  end
-
-  def to_native_key(native_key)
-    native_key[:type] = :PGP_PTAG_CT_PUBLIC_KEY
-    native_key[:sigid] = key_id
-    to_native(native_key[:key][:pubkey])
-    @userids.each {|userid|
-      LibNetPGP::dynarray_append_item(native_key, 'uid', :string, userid)
-    }
+    @subkeys = []
   end
 
   def fingerprint
@@ -127,6 +96,44 @@ class PublicKey
     ensure
       LibNetPGP::pgp_memory_free(memory) if memory
     end
+  end
+
+  def add_subkey(subkey)
+    subkey.parent = self
+    @subkeys.push(subkey)
+  end
+
+  def self.from_native(native)
+    pubkey = PublicKey.new
+    pubkey.version = LibNetPGP::enum_value(native[:version])
+    pubkey.creation_time = Time.at(native[:birthtime])
+    if pubkey.version == 3
+      pubkey.expiration_time = Time.at(native[:birthtime]) + (native[:days_valid] * 86400)
+    end
+    pubkey.public_key_algorithm = PublicKeyAlgorithm::from_native(native[:alg])
+    pubkey.mpi = NetPGP::mpis_from_native(native[:alg], native)
+    pubkey
+  end
+
+  def to_native(native)
+    native[:version] = @version
+    native[:birthtime] = @creation_time.to_i
+    if @version == 3 and @expiration_time 
+      native[:days_valid] = ((@expiration_time.to_i - @creation_time.to_i) / 86400).to_i
+    else
+      native[:duration] = (@expiration_time.to_i - @creation_time.to_i).to_i
+    end
+    native[:alg] = @public_key_algorithm
+    NetPGP::mpis_to_native(native[:alg], @mpi, native)
+  end
+
+  def to_native_key(native_key)
+    native_key[:type] = :PGP_PTAG_CT_PUBLIC_KEY
+    native_key[:sigid] = key_id
+    to_native(native_key[:key][:pubkey])
+    @userids.each {|userid|
+      LibNetPGP::dynarray_append_item(native_key, 'uid', :string, userid)
+    }
   end
 
 end

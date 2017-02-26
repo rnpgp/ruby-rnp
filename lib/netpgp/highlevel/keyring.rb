@@ -13,21 +13,21 @@ PARSE_KEYRING = Proc.new do |state, pkt, data|
       state[:keys].push(key)
     when :PGP_PTAG_CT_PUBLIC_SUBKEY
       key = PublicKey::from_native(pkt[:u][:pubkey])
-      key.parent = lastkey
+      lastkey.add_subkey(key)
       state[:keys].push(key)
     when :PGP_PTAG_CT_ENCRYPTED_SECRET_KEY
       key = SecretKey::from_native(pkt[:u][:seckey], true)
       state[:keys].push(key)
     when :PGP_PTAG_CT_ENCRYPTED_SECRET_SUBKEY
       key = SecretKey::from_native(pkt[:u][:seckey], true)
-      key.parent = lastkey
+      lastkey.add_subkey(key)
       state[:keys].push(key)
     when :PGP_PTAG_CT_SECRET_KEY
       key = SecretKey::from_native(pkt[:u][:seckey])
       state[:keys].push(key)
     when :PGP_PTAG_CT_SECRET_SUBKEY
       key = SecretKey::from_native(pkt[:u][:seckey])
-      key.parent = lastkey
+      lastkey.add_subkey(key)
       state[:keys].push(key)
     when :PGP_PARSER_PACKET_END
       if lastkey.is_a? NetPGP::SecretKey 
