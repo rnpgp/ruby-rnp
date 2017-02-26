@@ -49,6 +49,9 @@ class PublicKey
     native_key[:type] = :PGP_PTAG_CT_PUBLIC_KEY
     native_key[:sigid] = key_id
     to_native(native_key[:key][:pubkey])
+    @userids.each {|userid|
+      LibNetPGP::dynarray_append_item(native_key, 'uid', :string, userid)
+    }
   end
 
   def fingerprint
