@@ -10,6 +10,15 @@ module LibNetPGP
     layout :errcode, :pgp_errcode_t
   end
 
+  class PGPError < FFI::Struct
+    layout :errcode,      :pgp_errcode_t,
+           :sys_errno,    :int,
+           :comment,      :string,
+           :file,         :string,
+           :line,         :int,
+           :next,         :pointer
+  end
+
   class PGPPTag < FFI::Struct
     layout :new_format, :uint,
            :type, :uint, #:pgp_content_enum?
@@ -49,7 +58,15 @@ module LibNetPGP
            :duration,   :time_t,
            :days_valid, :uint,
            :alg,        :pgp_pubkey_alg_t,
-           :key, PGPPubKeyU
+           :key,        PGPPubKeyU
+
+    # Note: This is not a ManagedStruct because this struct is a non-pointer
+    # member in other structs and that will cause issues.
+    # Use FFI::AutoPointer.
+    def self.release(ptr)
+      LibNetPGP::pgp_pubkey_free(ptr)
+      LibC::free(ptr)
+    end
   end
 
   class PGPData < FFI::Struct
@@ -473,6 +490,10 @@ module LibNetPGP
            :uid0,             :uint32,
            :revoked,          :uint8,
            :revocation,       PGPRevoke
+
+    def self.release(ptr)
+      LibNetPGP::pgp_keydata_free(ptr)
+    end
   end
 
   class PGPMemory < FFI::Struct

@@ -53,9 +53,18 @@ module LibNetPGP
   attach_function :pgp_keyring_free,
                   [:pointer],
                   :void
+  attach_function :pgp_pubkey_free,
+                  [:pointer],
+                  :void
+  attach_function :pgp_seckey_free,
+                  [:pointer],
+                  :void
 
   attach_function :pgp_keyring_fileread,
                   [PGPKeyring.by_ref, :uint, :string],
+                  :uint
+  attach_function :pgp_keyring_read_from_mem,
+                  [PGPIO.by_ref, PGPKeyring.by_ref, :uint, PGPMemory.by_ref],
                   :uint
 
   attach_function :pgp_sign_file,
@@ -142,5 +151,15 @@ module LibNetPGP
                   [:pointer],
                   :void
 
+  attach_function :pgp_add_subpacket,
+                  [PGPKey.by_ref, PGPSubPacket.by_ref],
+                  :pointer
+
+  attach_function :pgp_fingerprint,
+                  [PGPFingerprint.by_ref, PGPPubKey.by_ref, :pgp_hash_alg_t],
+                  :int
+  attach_function :pgp_keyid,
+                  [:pointer, :size_t, PGPPubKey.by_ref, :pgp_hash_alg_t],
+                  :int
 end
 

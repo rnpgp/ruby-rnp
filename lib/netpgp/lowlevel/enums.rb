@@ -182,7 +182,7 @@ module LibNetPGP
        :PGP_V3, 3,
        :PGP_V4, 4
   ]
-  enum :pgp_pubkey_alg_t, [
+  PGP_PUBKEY_ALG_T = enum :pgp_pubkey_alg_t, [
        :PGP_PKA_NOTHING, 0,
        :PGP_PKA_RSA, 1,
        :PGP_PKA_RSA_ENCRYPT_ONLY, 2,
