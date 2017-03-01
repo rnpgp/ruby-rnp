@@ -5,7 +5,6 @@ require_relative 'utils'
 
 class SecretKey
   attr_accessor :public_key,
-                :expiration_time,
                 :string_to_key_usage,
                 :string_to_key_specifier,
                 :symmetric_key_algorithm,
@@ -19,7 +18,6 @@ class SecretKey
 
   def initialize
     @public_key = nil
-    @expiration_time = 0
     @string_to_key_usage = nil
     @string_to_key_specifier = nil
     @symmetric_key_algorithm = nil
@@ -65,6 +63,18 @@ class SecretKey
   def add_subkey(subkey)
     subkey.parent = self
     @subkeys.push(subkey)
+  end
+
+  def creation_time
+    @public_key.creation_time
+  end
+
+  def expiration_time
+    @public_key.expiration_time
+  end
+
+  def expiration_time=(expiration)
+    @public_key.expiration_time = expiration
   end
 
   def self.from_native(sk, encrypted=false)

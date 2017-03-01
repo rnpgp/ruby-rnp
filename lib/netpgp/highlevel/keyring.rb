@@ -38,8 +38,7 @@ PARSE_KEYRING = Proc.new do |state, pkt, data|
     when :PGP_PTAG_CT_USER_ID
       lastkey.userids.push(pkt[:u][:userid].force_encoding('utf-8'))
     when :PGP_PTAG_SS_KEY_EXPIRY
-      creation_time = lastkey.is_a?(NetPGP::SecretKey) ? lastkey.public_key.creation_time : lastkey.creation_time
-      lastkey.expiration_time = creation_time + pkt[:u][:ss_time]
+      lastkey.expiration_time = lastkey.creation_time + pkt[:u][:ss_time]
     else
       # For debugging
       #puts "Unhandled tag: #{pkt[:tag]}"
