@@ -36,7 +36,7 @@ class PublicKey
   end
 
   def fingerprint_hex
-    fingerprint.to_a.collect {|byte| '%02X' % byte}.join
+    fingerprint.bytes.collect {|byte| '%02X' % byte}.join
   end
 
   def key_id
@@ -49,7 +49,7 @@ class PublicKey
   end
   
   def key_id_hex
-    key_id.to_a.collect {|byte| '%02X' % byte}.join
+    key_id.bytes.collect {|byte| '%02X' % byte}.join
   end
 
   def key_length
