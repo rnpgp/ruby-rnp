@@ -50,7 +50,7 @@ PARSE_KEYRING = Proc.new do |state, pkt, data|
   next :PGP_RELEASE_MEMORY
 end
 
-def self.load_keyring(data, armored=false)
+def self.load_keyring(data, armored=true)
   # Just for readability
   print_errors = 0
   stream_mem = LibC::calloc(1, LibNetPGP::PGPStream.size)
