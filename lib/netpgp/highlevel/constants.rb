@@ -73,5 +73,17 @@ class SymmetricKeyAlgorithm
 
 end
 
+class StringToKeyUsage
+  NONE = 0
+  ENCRYPTED_AND_HASHED = 254
+  ENCRYPTED = 255
+end
+
+class StringToKeySpecifier
+  SIMPLE = 0
+  SALTED = 1
+  ITERATED_AND_SALTED = 3
+end
+
 end
 
