@@ -60,14 +60,14 @@ end
 
 def self.mpis_to_native(alg, mpi, native)
   case alg
-    when :PGP_PKA_RSA, :PGP_PKA_RSA_ENCRYPT_ONLY, :PGP_PKA_RSA_SIGN_ONLY
-      material = native[:key][:rsa]
-    when :PGP_PKA_DSA
-      material = native[:key][:dsa]
-    when :PGP_PKA_ELGAMAL
-      material = native[:key][:elgamal]
-    else
-      raise "Unsupported PK algorithm: #{alg}"
+  when :PGP_PKA_RSA, :PGP_PKA_RSA_ENCRYPT_ONLY, :PGP_PKA_RSA_SIGN_ONLY
+    material = native[:key][:rsa]
+  when :PGP_PKA_DSA
+    material = native[:key][:dsa]
+  when :PGP_PKA_ELGAMAL
+    material = native[:key][:elgamal]
+  else
+    raise "Unsupported PK algorithm: #{alg}"
   end
   NetPGP::mpi_to_native(mpi, material)
 end
