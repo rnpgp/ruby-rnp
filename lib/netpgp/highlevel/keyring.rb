@@ -2,7 +2,7 @@ require 'English'
 
 module NetPGP
 
-PARSE_KEYRING = Proc.new do |state, pkt, data|
+PARSE_KEYRING = Proc.new do |state, passphrase_provider, pkt, data|
   next :PGP_RELEASE_MEMORY if state[:errors].any?
   
   begin
@@ -29,6 +29,17 @@ PARSE_KEYRING = Proc.new do |state, pkt, data|
       key = SecretKey::from_native(pkt[:u][:seckey])
       lastkey.add_subkey(key)
       state[:keys].push(key)
+    when :PGP_GET_PASSPHRASE
+      seckey_ptr = pkt[:u][:skey_passphrase][:seckey]
+      seckey = LibNetPGP::PGPSecKey.new(seckey_ptr)
+      key = SecretKey::from_native(seckey)
+      passphrase = passphrase_provider.call(key)
+      if passphrase and passphrase != ''
+        passphrase_mem = LibC::calloc(1, passphrase.bytesize + 1)
+        passphrase_mem.write_bytes(passphrase)
+        pkt[:u][:skey_passphrase][:passphrase].write_pointer(passphrase_mem)
+        next :PGP_KEEP_MEMORY
+      end
     when :PGP_PARSER_PACKET_END
       if lastkey.is_a? NetPGP::SecretKey 
         raw_packet = pkt[:u][:packet]
@@ -49,7 +60,11 @@ PARSE_KEYRING = Proc.new do |state, pkt, data|
   next :PGP_RELEASE_MEMORY
 end
 
-def self.load_keyring(data, armored=true)
+DEFAULT_PASSPHRASE_PROVIDER = Proc.new do |seckey|
+  nil
+end
+
+def self.load_keyring(data, armored=true, &passphrase_provider)
   # Just for readability
   print_errors = 0
   stream_mem = LibC::calloc(1, LibNetPGP::PGPStream.size)
@@ -64,7 +79,8 @@ def self.load_keyring(data, armored=true)
 
   LibNetPGP::pgp_reader_set_memory(stream, mem, mem.size)
   state = {keys: [], errors: []}
-  callback = NetPGP::PARSE_KEYRING.curry[state]
+  provider = block_given? ? passphrase_provider : DEFAULT_PASSPHRASE_PROVIDER
+  callback = NetPGP::PARSE_KEYRING.curry[state][provider]
   LibNetPGP::pgp_set_callback(stream, callback, nil)
   LibNetPGP::pgp_reader_push_dearmour(stream) if armored
   if LibNetPGP::pgp_parse(stream, print_errors) != 1
