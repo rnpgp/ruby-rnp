@@ -91,5 +91,39 @@ module LibNetPGP
     struct[(field + 'vsize').to_sym] = newvsize
     struct[(field + 's').to_sym] = newarr
   end
+
+  # Clear a dynarray so that the item count is zero.
+  #
+  # @param struct [FFI::Struct] Structure where the DYNARRAY is held.
+  # @param field [String] The name of the DYNARRAY within the structure.
+  #   For example, this would be 'uid' if the array were declared natively
+  #   with something like DYNARRAY(uint8_t*, uid);
+  # @param type [FFI::Struct, :pointer, :string] The type (class) of the
+  #   elements in the DYNARRAY, or the special values :pointer or :string.
+  #
+  #   When type is :pointer or :string, LibC::free will be called on
+  #   the pointers first.
+  #
+  #   The memory will also be zeroed out.
+  def self.dynarray_clear(struct, field, type)
+    count = dynarray_count(struct, field)
+    mem = dynarray_items(struct, field)
+    return if count == 0 or mem.null?
+
+    vsize = dynarray_vsize(struct, field)
+    case type
+    when :pointer, :string
+      itemsize = FFI::Pointer.size
+      ptrs = FFI::Pointer.new(:pointer, mem)
+      (0..count-1).each {|n|
+        LibC::free(ptrs[n].read_pointer())
+      }
+    else
+      itemsize = type.size
+    end
+    LibC::memset(mem, 0, vsize * itemsize)
+    struct[(field + 'c').to_sym] = 0
+  end
+
 end
 
