@@ -1,3 +1,5 @@
+require 'rubygems'
+
 module NetPGP
 
 class PublicKeyAlgorithm
@@ -17,7 +19,12 @@ class PublicKeyAlgorithm
   end
 
   def self.to_native(alg)
-    raise if alg.class != Fixnum
+    # avoid a warning on newer versions of ruby
+    if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.4.0')
+      raise if alg.class != Integer
+    else
+      raise if alg.class != Fixnum
+    end
     LibNetPGP::PGP_PUBKEY_ALG_T[alg]
   end
 
