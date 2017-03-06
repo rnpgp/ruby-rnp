@@ -74,6 +74,115 @@ class SecretKey
     end
   end
 
+  # Signs data using this secret key.
+  #
+  # Note: {#passphrase} must be set to the correct passphrase prior
+  # to this call. If no passphrase is required, it should be set to ''.
+  #
+  # @param data [String] the data to be signed.
+  # @param armored [Boolean] whether the output should be ASCII armored.
+  # @param options [Hash] less-often used options that override defaults.
+  #   * :from [Time] (defaults to Time.now) - signature creation time
+  #   * :duration [Numeric] (defaults to 0) - signature duration/expiration
+  #   * :hash_algorithm [NetPGP::HashAlgorithm] (defaults to SHA1) -
+  #     hash algorithm to use
+  #   * :cleartext [Boolean] (defaults to false) - whether this should be
+  #     a cleartext/clearsign signature, which includes the original
+  #     data in cleartext in the same document.
+  # @return [String] the signed data, or nil on error.
+  def sign(data, armored=true, options={})
+    valid_options = [:from, :duration, :hash_algorithm, :cleartext]
+    for option in options.keys
+      raise if not valid_options.include?(option)
+    end
+
+    armored = armored ? 1 : 0
+    from = options[:from] || Time.now
+    duration = options[:duration] || 0
+    hashalg = options[:hash_algorithm] || HashAlgorithm::SHA1
+    cleartext = options[:cleartext] ? 1 : 0
+
+    from = from.to_i
+    hashname = HashAlgorithm::to_s(hashalg)
+
+    pgpio = create_pgpio
+    data_buf = FFI::MemoryPointer.new(:uint8, data.bytesize)
+    data_buf.write_bytes(data)
+    seckey = decrypted_seckey
+    return nil if not seckey
+    memory = nil
+    begin
+      memory_ptr = LibNetPGP::pgp_sign_buf(pgpio, data_buf, data_buf.size, seckey, from, duration, hashname, armored, cleartext)
+      return nil if not memory_ptr or memory_ptr.null?
+      memory = LibNetPGP::PGPMemory.new(memory_ptr)
+      signed_data = memory[:buf].read_bytes(memory[:length])
+      signed_data
+    ensure
+      LibNetPGP::pgp_memory_free(memory) if memory
+    end
+  end
+
+  # Cleartext signs data using this secret key.
+  # This is a shortcut for {#sign}.
+  #
+  # Note: {#passphrase} must be set to the correct passphrase prior
+  # to this call. If no passphrase is required, it should be set to ''.
+  #
+  # @param data [String] the data to be signed.
+  # @param armored [Boolean] whether the output should be ASCII armored.
+  # @param options [Hash] less-often used options that override defaults.
+  #   * :from [Time] (defaults to Time.now) - signature creation time
+  #   * :duration [Integer] (defaults to 0) - signature duration/expiration
+  #   * :hash_algorithm [{NetPGP::HashAlgorithm}] (defaults to SHA1) -
+  #     hash algorithm to use
+  # @return [String] the signed data, or nil on error.
+  def clearsign(data, armored=true, options={})
+    options[:cleartext] = true
+    sign(data, armored, options)
+  end
+
+  # Creates a detached signature of a file.
+  #
+  # Note: {#passphrase} must be set to the correct passphrase prior
+  # to this call. If no passphrase is required, it should be set to ''.
+  #
+  # @param infile [String] the path to the input file for which a
+  #   signature will be created.
+  # @param sigfile [String] the path to the signature file that will
+  #   be created.
+  #
+  #   This can be nil, in which case the filename will be the infile
+  #   parameter with '.asc' appended.
+  #
+  # @param armored [Boolean] whether the output should be ASCII armored.
+  # @param options [Hash] less-often used options that override defaults.
+  #   * :from [Time] (defaults to Time.now) - signature creation time
+  #   * :duration [Integer] (defaults to 0) - signature duration/expiration
+  #   * :hash_algorithm [{NetPGP::HashAlgorithm}] (defaults to SHA1) -
+  #     hash algorithm to use
+  # @return [Boolean] whether the signing was successful.
+  def detached_sign(infile, sigfile=nil, armored=true, options={})
+    valid_options = [:from, :duration, :hash_algorithm]
+    for option in options.keys
+      raise if not valid_options.include?(option)
+    end
+
+    armored = armored ? 1 : 0
+    from = options[:from] || Time.now
+    duration = options[:duration] || 0
+    hashalg = options[:hash_algorithm] || HashAlgorithm::SHA1
+
+    hashname = HashAlgorithm::to_s(hashalg)
+    from = from.to_i
+
+    pgpio = create_pgpio
+    # Note: pgp_sign_detached calls pgp_seckey_free for us
+    seckey = decrypted_seckey
+    return false if not seckey
+    ret = LibNetPGP::pgp_sign_detached(pgpio, infile, sigfile, seckey, hashname, from, duration, armored, 1)
+    return ret == 1
+  end
+
   def add_subkey(subkey)
     raise if subkey.subkeys.any?
     subkey.parent = self
