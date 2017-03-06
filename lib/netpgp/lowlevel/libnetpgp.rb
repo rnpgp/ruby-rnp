@@ -38,6 +38,9 @@ module LibNetPGP
   attach_function :pgp_rsa_new_selfsign_key,
                   [:int, :ulong, :string, :string, :string],
                   PGPKey.by_ref
+  attach_function :pgp_rsa_new_key,
+                  [:int, :ulong, :string, :string],
+                  PGPKey.by_ref
   attach_function :pgp_keydata_free,
                   [:pointer],
                   :void
