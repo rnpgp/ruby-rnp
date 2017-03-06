@@ -265,6 +265,20 @@ class SecretKey
   end
 
   private
+  def decrypted_seckey
+    native_mem = LibC::calloc(1, LibNetPGP::PGPKey.size)
+    native = LibNetPGP::PGPKey.new(native_mem)
+    to_native_key(native)
+    rd, wr = IO.pipe
+    wr.write(@passphrase + "\n")
+    wr.close
+    passfp = LibC::fdopen(rd.to_i, 'r')
+    decrypted = LibNetPGP::pgp_decrypt_seckey(native, passfp)
+    rd.close
+    LibC::fclose(passfp)
+    return nil if not decrypted or decrypted.null?
+    LibNetPGP::PGPSecKey.new(decrypted)
+  end
 
   def create_pgpio
     pgpio = LibNetPGP::PGPIO.new
