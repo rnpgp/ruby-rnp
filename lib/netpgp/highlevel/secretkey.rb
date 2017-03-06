@@ -3,6 +3,8 @@ module NetPGP
 require_relative 'publickey'
 require_relative 'utils'
 
+# Secret key
+#
 class SecretKey
   attr_accessor :public_key,
                 :string_to_key_usage,
@@ -32,10 +34,23 @@ class SecretKey
     @passphrase = ''
   end
 
+  # Checks if a key is encrypted. An encrypted key requires a
+  # passphrase for signing/decrypting/etc and will have nil values
+  # for key material/mpis.
+  #
+  # @return [Boolean]
   def encrypted?
     @encrypted
   end
 
+  # Decrypts data using this secret key.
+  #
+  # Note: {#passphrase} must be set to the correct passphrase prior
+  # to this call. If no passphrase is required, it should be set to
+  # '' (not nil).
+  #
+  # @param data [String] the encrypted data to be decrypted.
+  # @param armored [Boolean] whether the encrypted data is ASCII armored.
   def decrypt(data, armored=true)
     begin
       rd, wr = IO.pipe
