@@ -1,11 +1,17 @@
 module NetPGP
 
+require 'forwardable'
+
 require_relative 'publickey'
 require_relative 'utils'
 
 # Secret key
 #
 class SecretKey
+  extend Forwardable
+  delegate [:creation_time, :expiration_time, :expiration_time=,
+            :fingerprint, :fingerprint_hex, :key_id, :key_id_hex] => :@public_key
+
   attr_accessor :public_key,
                 :string_to_key_usage,
                 :string_to_key_specifier,
@@ -187,18 +193,6 @@ class SecretKey
     raise if subkey.subkeys.any?
     subkey.parent = self
     @subkeys.push(subkey)
-  end
-
-  def creation_time
-    @public_key.creation_time
-  end
-
-  def expiration_time
-    @public_key.expiration_time
-  end
-
-  def expiration_time=(expiration)
-    @public_key.expiration_time = expiration
   end
 
   def self.generate(options={})
