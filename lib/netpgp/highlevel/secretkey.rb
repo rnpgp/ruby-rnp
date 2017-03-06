@@ -14,7 +14,8 @@ class SecretKey
                 :parent,
                 :subkeys,
                 :raw_subpackets,
-                :encrypted
+                :encrypted,
+                :passphrase
 
   def initialize
     @public_key = nil
@@ -28,16 +29,17 @@ class SecretKey
     @subkeys = []
     @raw_subpackets = []
     @encrypted = false
+    @passphrase = ''
   end
 
   def encrypted?
     @encrypted
   end
 
-  def decrypt(data, passphrase=nil, armored=true)
+  def decrypt(data, armored=true)
     begin
       rd, wr = IO.pipe
-      wr.write(passphrase + "\n")
+      wr.write(@passphrase + "\n")
       native_keyring_ptr = LibC::calloc(1, LibNetPGP::PGPKeyring.size)
       native_keyring = LibNetPGP::PGPKeyring.new(native_keyring_ptr)
       NetPGP::keyring_to_native([self], native_keyring)
