@@ -201,6 +201,30 @@ class SecretKey
     @public_key.expiration_time = expiration
   end
 
+  def self.generate(options={})
+    valid_options = [:key_length, :public_key_algorithm, :algorithm_params,
+                     :hash_algorithm, :symmetric_key_algorithm]
+    for option in options.keys
+      raise if not valid_options.include?(option)
+    end
+
+    key_length = options[:key_length] || 4096
+    pkalg = options[:public_key_algorithm] || PublicKeyAlgorithm::RSA
+    pkalg_params = options[:algorithm_params] || {e: 65537}
+    hashalg = options[:hash_algorithm] || HashAlgorithm::SHA1
+    skalg = options[:symmetric_key_algorithm] || SymmetricKeyAlgorithm::CAST5
+    hashalg_s = HashAlgorithm::to_s(hashalg)
+    skalg_s = SymmetricKeyAlgorithm::to_s(skalg)
+
+    native_key = nil
+    begin
+      native_key = LibNetPGP::pgp_rsa_new_key(key_length, pkalg_params[:e], hashalg_s, skalg_s)
+      SecretKey::from_native(native_key[:key][:seckey])
+    ensure
+      LibNetPGP::pgp_keydata_free(native_key) if native_key
+    end
+  end
+
   def self.from_native(sk, encrypted=false)
     seckey = SecretKey.new
     seckey.public_key = PublicKey::from_native(sk[:pubkey])
