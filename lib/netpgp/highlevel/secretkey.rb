@@ -58,10 +58,7 @@ class SecretKey
       native_keyring_ptr = LibC::calloc(1, LibNetPGP::PGPKeyring.size)
       native_keyring = LibNetPGP::PGPKeyring.new(native_keyring_ptr)
       NetPGP::keyring_to_native([self], native_keyring)
-      pgpio = LibNetPGP::PGPIO.new
-      pgpio[:outs] = LibC::fdopen($stdout.to_i, 'w')
-      pgpio[:errs] = LibC::fdopen($stderr.to_i, 'w')
-      pgpio[:res] = pgpio[:errs]
+      pgpio = create_pgpio
       data_ptr = FFI::MemoryPointer.new(:uint8, data.bytesize)
       data_ptr.write_bytes(data)
       passfp = LibC::fdopen(rd.to_i, 'r')
@@ -131,6 +128,16 @@ class SecretKey
       packet[:raw].write_bytes(bytes)
       LibNetPGP::dynarray_append_item(native_key, 'packet', LibNetPGP::PGPSubPacket, packet)
     }
+  end
+
+  private
+
+  def create_pgpio
+    pgpio = LibNetPGP::PGPIO.new
+    pgpio[:outs] = LibC::fdopen($stdout.to_i, 'w')
+    pgpio[:errs] = LibC::fdopen($stderr.to_i, 'w')
+    pgpio[:res] = pgpio[:errs]
+    pgpio
   end
 
 end
