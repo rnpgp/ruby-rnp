@@ -47,7 +47,7 @@ class PublicKey
     raise 'pgp_keyid failed' if ret != 1
     keyid_ptr.read_bytes(LibNetPGP::PGP_KEY_ID_SIZE)
   end
-  
+
   def key_id_hex
     key_id.bytes.collect {|byte| '%02X' % byte}.join
   end
@@ -96,6 +96,10 @@ class PublicKey
     ensure
       LibNetPGP::pgp_memory_free(memory) if memory
     end
+  end
+
+  def verify(data, armored=true)
+    NetPGP::verify([self], data, armored)
   end
 
   def add_subkey(subkey)
