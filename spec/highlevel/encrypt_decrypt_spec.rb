@@ -3,8 +3,8 @@ require 'netpgp'
 describe 'encrypting and decrypting' do
 
   context 'with pubkey_no_pass.asc and seckey_no_pass.asc' do
-    let(:pubkeys) { NetPGP::load_keyring(File.read('spec/keys/pubkey_no_pass.asc'), true) }
-    let(:seckeys) { NetPGP::load_keyring(File.read('spec/keys/seckey_no_pass.asc'), true) }
+    let(:pubkeys) { NetPGP::load_keys(File.read('spec/keys/pubkey_no_pass.asc'), true) }
+    let(:seckeys) { NetPGP::load_keys(File.read('spec/keys/seckey_no_pass.asc'), true) }
     it { expect(pubkeys.size).to eql 2 }
     it { expect(seckeys.size).to eql 2 }
 
@@ -25,8 +25,8 @@ describe 'encrypting and decrypting' do
   end
 
   context 'with pubkey_sign_only.asc and seckey_sign_only.asc' do
-    let(:pubkeys) { NetPGP::load_keyring(File.read('spec/keys/pubkey_sign_only.asc'), true) }
-    let(:seckeys) { NetPGP::load_keyring(File.read('spec/keys/seckey_sign_only.asc'), true) }
+    let(:pubkeys) { NetPGP::load_keys(File.read('spec/keys/pubkey_sign_only.asc'), true) }
+    let(:seckeys) { NetPGP::load_keys(File.read('spec/keys/seckey_sign_only.asc'), true) }
     it { expect(pubkeys.size).to eql 1 }
     it { expect(seckeys.size).to eql 1 }
 

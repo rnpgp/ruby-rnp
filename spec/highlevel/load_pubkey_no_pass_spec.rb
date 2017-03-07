@@ -1,9 +1,9 @@
 require 'netpgp'
 
-describe NetPGP.method(:load_keyring) do
+describe NetPGP.method(:load_keys) do
 
   context 'when loading pubkey_no_pass.asc' do
-    let(:keys) { NetPGP::load_keyring(File.read('spec/keys/pubkey_no_pass.asc'), true) }
+    let(:keys) { NetPGP::load_keys(File.read('spec/keys/pubkey_no_pass.asc'), true) }
     it { expect(keys.size).to eql 2 }
 
     context 'keys[0]' do

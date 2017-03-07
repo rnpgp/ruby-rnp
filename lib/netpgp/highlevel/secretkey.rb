@@ -63,7 +63,7 @@ class SecretKey
       wr.write(@passphrase + "\n")
       native_keyring_ptr = LibC::calloc(1, LibNetPGP::PGPKeyring.size)
       native_keyring = LibNetPGP::PGPKeyring.new(native_keyring_ptr)
-      NetPGP::keyring_to_native([self], native_keyring)
+      NetPGP::keys_to_native_keyring([self], native_keyring)
       pgpio = create_pgpio
       data_ptr = FFI::MemoryPointer.new(:uint8, data.bytesize)
       data_ptr.write_bytes(data)

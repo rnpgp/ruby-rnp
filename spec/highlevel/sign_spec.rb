@@ -4,7 +4,7 @@ require 'tempfile'
 describe 'SecretKey signing' do
 
   context 'with seckey_sign_only.asc' do
-    let(:keys) { NetPGP::load_keyring(File.read('spec/keys/seckey_sign_only.asc'), true) }
+    let(:keys) { NetPGP::load_keys(File.read('spec/keys/seckey_sign_only.asc'), true) }
     it { expect(keys.size).to eql 1 }
 
     let(:key) { keys[0] }

@@ -64,7 +64,7 @@ DEFAULT_PASSPHRASE_PROVIDER = Proc.new do |seckey|
   nil
 end
 
-def self.load_keyring(data, armored=true, &passphrase_provider)
+def self.load_keys(data, armored=true, &passphrase_provider)
   # Just for readability
   print_errors = 0
   stream_mem = LibC::calloc(1, LibNetPGP::PGPStream.size)
@@ -95,10 +95,10 @@ def self.load_keyring(data, armored=true, &passphrase_provider)
   state[:keys]
 end
 
-def self.keyring_to_native(keyring, native)
+def self.keys_to_native_keyring(keys, native)
   raise if not native[:keys].null?
 
-  for key in keyring
+  for key in keys
     native_key = LibNetPGP::PGPKey.new
     key.to_native_key(native_key)
     LibNetPGP::dynarray_append_item(native, 'key', LibNetPGP::PGPKey, native_key)

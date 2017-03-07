@@ -1,9 +1,9 @@
 require 'netpgp'
 
-describe NetPGP.method(:load_keyring) do
+describe NetPGP.method(:load_keys) do
 
   context 'when loading seckey_sign_only.asc' do
-    let(:keys) { NetPGP::load_keyring(File.read('spec/keys/seckey_sign_only.asc'), true) }
+    let(:keys) { NetPGP::load_keys(File.read('spec/keys/seckey_sign_only.asc'), true) }
     it { expect(keys.size).to eql 1 }
 
     context 'keys[0]' do
@@ -25,7 +25,7 @@ describe NetPGP.method(:load_keyring) do
         expect(key.public_key.subkeys.size).to eql 0
         expect(key.public_key.fingerprint_hex).to eql '4AD79A40B539229D78E9E82686E45E4EE4312240'
         expect(key.public_key.key_id_hex).to eql '86E45E4EE4312240'
- 
+
         expect(key.expiration_time).to eql(key.creation_time + (123 * 86400))
         expect(key.string_to_key_usage).to eql NetPGP::StringToKeyUsage::ENCRYPTED_AND_HASHED
         expect(key.string_to_key_specifier).to eql NetPGP::StringToKeySpecifier::ITERATED_AND_SALTED
@@ -42,7 +42,8 @@ describe NetPGP.method(:load_keyring) do
         expect(key.subkeys.size).to eql 0
         expect(key.raw_subpackets.size).to eql 5
         expect(key.encrypted).to eql true
-       end
+      end
+
     end # key0
 
    end # seckey_sign_only.asc
