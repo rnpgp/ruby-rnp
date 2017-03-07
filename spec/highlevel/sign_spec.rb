@@ -4,31 +4,43 @@ require 'tempfile'
 describe 'SecretKey signing' do
 
   context 'with seckey_sign_only.asc' do
-    let(:keys) { NetPGP::load_keys(File.read('spec/keys/seckey_sign_only.asc'), true) }
-    it { expect(keys.size).to eql 1 }
+    let(:pubring) { NetPGP::Keyring.load(File.read('spec/keys/pubkey_sign_only.asc')) }
+    let(:secring) { NetPGP::Keyring.load(File.read('spec/keys/seckey_sign_only.asc')) }
 
-    let(:key) { keys[0] }
+    it { expect(pubring.size).to eql 1 }
+    it { expect(pubring.public_keys.size).to eql 1 }
+    it { expect(secring.size).to eql 1 }
+    it { expect(secring.secret_keys.size).to eql 1 }
+
+    let(:seckey) { secring[0] }
+    let(:pubkey) { pubring[0] }
     it 'signs data correctly' do
       data = 'Here is my data.'
 
       # incorrect passphrase
-      key.passphrase = 'wrong'
-      signed_data = key.sign(data)
+      seckey.passphrase = 'wrong'
+      signed_data = seckey.sign(data)
       expect(signed_data).to eql nil
 
       # correct passphrase
-      key.passphrase = 'password'
-      signed_data = key.sign(data)
+      seckey.passphrase = 'password'
+      signed_data = seckey.sign(data)
       expect(signed_data).to_not eql nil
       expect(signed_data.class).to eql String
+      expect(pubkey.verify(signed_data)).to eql true
+      # tamper with the data
+      signed_data[signed_data.size / 2] = (signed_data[signed_data.size / 2].ord + 1).chr
+      expect(pubkey.verify(signed_data)).to eql false
 
-      signed_data = key.sign(data, true, cleartext: true)
+      # cleartext signature
+      signed_data = seckey.sign(data, true, cleartext: true)
       expect(signed_data.include?(data)).to eql true
+      expect(pubkey.verify(signed_data)).to eql true
 
-      signed_data = key.clearsign(data)
+      # cleartext signature (shortcut)
+      signed_data = seckey.clearsign(data)
       expect(signed_data.include?(data)).to eql true
-
-      # TODO: add verification
+      expect(pubkey.verify(signed_data)).to eql true
     end
 
     it 'creates detached file signatures correctly' do
@@ -39,15 +51,15 @@ describe 'SecretKey signing' do
         inputfile.close
 
         # incorrect passphrase
-        key.passphrase = 'wrong'
+        seckey.passphrase = 'wrong'
         expect(
-          key.detached_sign(inputfile.path, nil)
+          seckey.detached_sign(inputfile.path, nil)
         ).to eql false
 
         # correct passphrase
-        key.passphrase = 'password'
+        seckey.passphrase = 'password'
         expect(
-          key.detached_sign(inputfile.path, nil)
+          seckey.detached_sign(inputfile.path, nil)
         ).to eql true
         expect(
           File.exists?(inputfile.path + '.asc')
