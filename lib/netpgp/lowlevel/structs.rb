@@ -503,7 +503,7 @@ module LibNetPGP
            :mmapped,    :uint
   end
 
-  class PGPValidation < FFI::Struct
+  class PGPValidation < FFI::ManagedStruct
     layout :validc,         :uint,
            :valid_sigs,     :pointer,
            :invalidc,       :uint,
@@ -512,6 +512,10 @@ module LibNetPGP
            :unknown_sigs,   :pointer,
            :birthtime,      :time_t,
            :duration,       :time_t
+
+    def self.release(ptr)
+      LibNetPGP::pgp_validate_result_free(ptr)
+    end
   end
 
   class PGPWriter < FFI::Struct

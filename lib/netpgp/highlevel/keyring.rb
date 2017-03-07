@@ -1,10 +1,55 @@
 require 'English'
+require 'forwardable'
 
 module NetPGP
 
+class Keyring
+  extend Forwardable
+  delegate [:size, :each, :select, :[], :push, :clear] => :@keys
+
+  attr_reader :keys
+
+  def initialize
+    @keys = []
+  end
+
+  def self.load(data, armored=true, &passphrase_provider)
+    kr = Keyring.new
+    kr.add(data, armored, &passphrase_provider)
+    kr
+  end
+
+  def add(data, armored=true, &passphrase_provider)
+    keys = NetPGP::load_keys(data, armored, &passphrase_provider)
+    @keys.push(*keys)
+    keys.size
+  end
+
+  def verify(data, armored=true)
+    NetPGP::verify(@keys, data, armored)
+  end
+
+  def public_keys
+    self.select {|key|
+      key.is_a?(PublicKey)
+    }
+  end
+
+  def secret_keys
+    self.select {|key|
+      key.is_a?(SecretKey)
+    }
+  end
+
+  def to_native(native)
+    keys_to_native_keyring(@keys, native)
+  end
+
+end
+
 PARSE_KEYRING = Proc.new do |state, passphrase_provider, pkt, data|
   next :PGP_RELEASE_MEMORY if state[:errors].any?
-  
+
   begin
     lastkey = state[:keys].last
     case pkt[:tag]
@@ -41,7 +86,7 @@ PARSE_KEYRING = Proc.new do |state, passphrase_provider, pkt, data|
         next :PGP_KEEP_MEMORY
       end
     when :PGP_PARSER_PACKET_END
-      if lastkey.is_a? NetPGP::SecretKey 
+      if lastkey.is_a? NetPGP::SecretKey
         raw_packet = pkt[:u][:packet]
         bytes = raw_packet[:raw].read_bytes(raw_packet[:length])
         lastkey.raw_subpackets.push(bytes)
@@ -103,6 +148,32 @@ def self.keys_to_native_keyring(keys, native)
     key.to_native_key(native_key)
     LibNetPGP::dynarray_append_item(native, 'key', LibNetPGP::PGPKey, native_key)
   end
+end
+
+def self.verify(keys, data, armored=true)
+  native_keyring_ptr = LibC::calloc(1, LibNetPGP::PGPKeyring.size)
+  native_keyring = LibNetPGP::PGPKeyring.new(native_keyring_ptr)
+  NetPGP::keys_to_native_keyring(keys, native_keyring)
+
+  pgpio = LibNetPGP::PGPIO.new
+  pgpio[:outs] = LibC::fdopen($stdout.to_i, 'w')
+  pgpio[:errs] = LibC::fdopen($stderr.to_i, 'w')
+  pgpio[:res] = pgpio[:errs]
+
+  data_buf = FFI::MemoryPointer.new(:uint8, data.bytesize)
+  data_buf.write_bytes(data)
+
+  # pgp_validate_mem frees this
+  mem_ptr = LibC::calloc(1, LibNetPGP::PGPMemory.size)
+  mem = LibNetPGP::PGPMemory.new(mem_ptr)
+  LibNetPGP::pgp_memory_add(mem, data_buf, data_buf.size)
+
+  # ManagedStruct, this frees itself
+  result_ptr = LibC::calloc(1, LibNetPGP::PGPValidation.size)
+  result = LibNetPGP::PGPValidation.new(result_ptr)
+
+  ret = LibNetPGP::pgp_validate_mem(pgpio, result, mem, nil, armored ? 1 : 0, native_keyring)
+  ret == 1
 end
 
 end # module NetPGP
