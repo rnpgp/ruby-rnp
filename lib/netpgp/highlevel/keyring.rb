@@ -69,6 +69,10 @@ PARSE_KEYRING = Proc.new do |state, passphrase_provider, pkt, data|
       state[:keys].push(key)
     when :PGP_PTAG_CT_SECRET_KEY
       key = SecretKey::from_native(pkt[:u][:seckey])
+      if state[:passphrase]
+        key.passphrase = state[:passphrase]
+        state[:passphrase] = nil
+      end
       state[:keys].push(key)
     when :PGP_PTAG_CT_SECRET_SUBKEY
       key = SecretKey::from_native(pkt[:u][:seckey])
@@ -83,6 +87,7 @@ PARSE_KEYRING = Proc.new do |state, passphrase_provider, pkt, data|
         passphrase_mem = LibC::calloc(1, passphrase.bytesize + 1)
         passphrase_mem.write_bytes(passphrase)
         pkt[:u][:skey_passphrase][:passphrase].write_pointer(passphrase_mem)
+        state[:passphrase] = passphrase
         next :PGP_KEEP_MEMORY
       end
     when :PGP_PARSER_PACKET_END
