@@ -154,6 +154,44 @@ module LibNetPGP
                   [:pointer],
                   :void
 
+  attach_function :pgp_setup_memory_write,
+                  [:pointer, :pointer, :size_t],
+                  :void
+  attach_function :pgp_teardown_memory_write,
+                  [PGPOutput.by_ref, PGPMemory.by_ref],
+                  :void
+  attach_function :pgp_write_xfer_pubkey,
+                  [PGPOutput.by_ref, PGPKey.by_ref, :pointer, :uint],
+                  :uint
+  attach_function :pgp_write_xfer_seckey,
+                  [PGPOutput.by_ref, PGPKey.by_ref, :pointer, :size_t, :uint],
+                  :uint
+
+  attach_function :pgp_create_sig_new,
+                  [],
+                  :pointer
+  attach_function :pgp_create_sig_delete,
+                  [:pointer],
+                  :void
+  attach_function :pgp_sig_start_key_sig,
+                  [:pointer, PGPPubKey.by_ref, :string, :pgp_sig_type_t],
+                  :void
+  attach_function :pgp_sig_start_subkey_sig,
+                  [:pointer, PGPPubKey.by_ref, PGPPubKey.by_ref, :pgp_sig_type_t],
+                  :void
+  attach_function :pgp_write_sig,
+                  [PGPOutput.by_ref, :pointer, PGPPubKey.by_ref, PGPSecKey.by_ref],
+                  :uint
+  attach_function :pgp_add_time,
+                  [:pointer, :int64, :string],
+                  :uint
+  attach_function :pgp_add_issuer_keyid,
+                  [:pointer, :pointer],
+                  :uint
+  attach_function :pgp_end_hashed_subpkts,
+                  [:pointer],
+                  :uint
+
   attach_function :pgp_add_subpacket,
                   [PGPKey.by_ref, PGPSubPacket.by_ref],
                   :pointer
@@ -164,5 +202,12 @@ module LibNetPGP
   attach_function :pgp_keyid,
                   [:pointer, :size_t, PGPPubKey.by_ref, :pgp_hash_alg_t],
                   :int
+
+  attach_function :pgp_writer_close,
+                  [PGPOutput.by_ref],
+                  :uint
+  attach_function :pgp_output_delete,
+                  [PGPOutput.by_ref],
+                  :void
 end
 
