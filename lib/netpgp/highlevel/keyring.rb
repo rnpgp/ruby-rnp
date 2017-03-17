@@ -40,7 +40,7 @@ class Keyring
 
   def export_public_key(key, armored=true)
     # no exporting subkeys directly
-    raise if @parent
+    raise if key.parent
     keyid = key.key_id
     # we'll need the corresponding secret key for signatures
     seckey = secret_keys.find {|key| key.key_id == keyid}
