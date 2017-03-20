@@ -48,6 +48,7 @@ class Keyring
     mem_ptr = FFI::MemoryPointer.new(:pointer)
     output = nil
     mem = nil
+    decrypted_seckey = nil
     begin
       LibNetPGP::pgp_setup_memory_write(output_ptr, mem_ptr, 4096)
       output = LibNetPGP::PGPOutput.new(output_ptr.read_pointer)
@@ -81,6 +82,7 @@ class Keyring
       data
     ensure
       LibNetPGP::pgp_teardown_memory_write(output, mem) if mem
+      LibNetPGP::pgp_seckey_free(decrypted_seckey) if decrypted_seckey
     end
    end
 
