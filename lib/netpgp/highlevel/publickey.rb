@@ -103,6 +103,7 @@ class PublicKey
   end
 
   def add_subkey(subkey)
+    raise if subkey.subkeys.any?
     subkey.parent = self
     @subkeys.push(subkey)
   end
