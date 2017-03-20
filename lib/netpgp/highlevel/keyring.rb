@@ -84,34 +84,6 @@ class Keyring
       LibNetPGP::pgp_teardown_memory_write(output, mem) if mem
       LibNetPGP::pgp_seckey_free(decrypted_seckey) if decrypted_seckey
     end
-   end
-
-  def self.add_subkey_sig(key, subkey)
-    sig = nil
-    sigoutput = nil
-    mem_sig = nil
-    begin
-      sig = LibNetPGP::pgp_create_sig_new
-      LibNetPGP::pgp_sig_start_subkey_sig(sig, key[:key][:pubkey], subkey[:key][:pubkey], :PGP_SIG_SUBKEY)
-      LibNetPGP::pgp_add_time(sig, subkey[:key][:pubkey][:birthtime], 'birth')
-      # TODO expiration
-      LibNetPGP::pgp_add_issuer_keyid(sig, key[:sigid])
-      LibNetPGP::pgp_end_hashed_subpkts(sig)
-
-      sigoutput_ptr = FFI::MemoryPointer.new(:pointer)
-      mem_sig_ptr = FFI::MemoryPointer.new(:pointer)
-      LibNetPGP::pgp_setup_memory_write(sigoutput_ptr, mem_sig_ptr, 128)
-      sigoutput = LibNetPGP::PGPOutput.new(sigoutput_ptr.read_pointer)
-      LibNetPGP::pgp_write_sig(sigoutput, sig, key[:key][:pubkey], key[:key][:seckey])
-      mem_sig = LibNetPGP::PGPMemory.new(mem_sig_ptr.read_pointer)
-      sigpkt = LibNetPGP::PGPSubPacket.new
-      sigpkt[:length] = LibNetPGP::pgp_mem_len(mem_sig)
-      sigpkt[:raw] = LibNetPGP::pgp_mem_data(mem_sig)
-      LibNetPGP::pgp_add_subpacket(subkey, sigpkt)
-    ensure
-      LibNetPGP::pgp_create_sig_delete(sig) if sig
-      LibNetPGP::pgp_teardown_memory_write(sigoutput, mem_sig) if mem_sig
-    end
   end
 
   def public_keys
