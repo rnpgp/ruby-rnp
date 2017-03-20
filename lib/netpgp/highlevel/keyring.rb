@@ -31,6 +31,8 @@ class Keyring
 
   # Export a specific key
   def export_key(key, armored=true)
+    # no exporting of subkeys directly
+    raise if key.parent
     case
     when key.is_a?(PublicKey)
       export_public_key(key, armored)
@@ -39,8 +41,6 @@ class Keyring
   end
 
   def export_public_key(key, armored=true)
-    # no exporting subkeys directly
-    raise if key.parent
     keyid = key.key_id
     # we'll need the corresponding secret key for signatures
     seckey = secret_keys.find {|key| key.key_id == keyid}
