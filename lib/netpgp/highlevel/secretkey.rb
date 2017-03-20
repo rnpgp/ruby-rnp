@@ -125,6 +125,7 @@ class SecretKey
       signed_data
     ensure
       LibNetPGP::pgp_memory_free(memory) if memory
+      LibNetPGP::pgp_seckey_free(seckey) if seckey
     end
   end
 
