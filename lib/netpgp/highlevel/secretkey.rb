@@ -260,8 +260,9 @@ class SecretKey
 
   private
   def decrypted_seckey
-    native_mem = LibC::calloc(1, LibNetPGP::PGPKey.size)
-    native = LibNetPGP::PGPKey.new(native_mem)
+    native_ptr = LibC::calloc(1, LibNetPGP::PGPKey.size)
+    native = LibNetPGP::PGPKey.new(native_ptr)
+    native_auto = FFI::AutoPointer.new(native_ptr, LibNetPGP::PGPKey.method(:release))
     to_native_key(native)
     rd, wr = IO.pipe
     wr.write(@passphrase + "\n")
