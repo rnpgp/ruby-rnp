@@ -259,7 +259,6 @@ class SecretKey
     }
   end
 
-  private
   def decrypted_seckey
     native_ptr = LibC::calloc(1, LibNetPGP::PGPKey.size)
     native = LibNetPGP::PGPKey.new(native_ptr)
@@ -276,6 +275,7 @@ class SecretKey
     LibNetPGP::PGPSecKey.new(decrypted)
   end
 
+  private
   def create_pgpio
     pgpio = LibNetPGP::PGPIO.new
     pgpio[:outs] = LibC::fdopen($stdout.to_i, 'w')
