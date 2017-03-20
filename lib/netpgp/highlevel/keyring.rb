@@ -41,9 +41,8 @@ class Keyring
   end
 
   def export_public_key(key, armored=true)
-    keyid = key.key_id
     # we'll need the corresponding secret key for signatures
-    seckey = secret_keys.find {|key| key.key_id == keyid}
+    seckey = secret_keys.find {|sk| sk.key_id == key.key_id}
     return nil if not seckey
     output_ptr = FFI::MemoryPointer.new(:pointer)
     mem_ptr = FFI::MemoryPointer.new(:pointer)
