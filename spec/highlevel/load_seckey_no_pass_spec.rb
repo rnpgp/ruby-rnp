@@ -75,7 +75,7 @@ describe NetPGP.method(:load_keys) do
           q: 0xE900721DD79C2EEAD14C9C64CDF79BF2F0BBD7E190E70AABCE956794DE6C088BA17E5645C020D4C6CD97BD283131B8275B676C634070030F6D77470A3F5781C7,
           u: 0x36604C0166991CFCC63C3EFB711C169B0D0A239D47FEF10C3A241D9E53BD77C3EB0A434C709FE2C6E2935331696ADDCF0D88E0F8D345559672F5E296095819A3
         })
-        expect(key.userids).to eql []
+        expect(key.userids).to eql ['Test User1']
         expect(key.parent).to eql keys[0]
         expect(key.subkeys.size).to eql 0
         expect(key.raw_subpackets.size).to eql 2

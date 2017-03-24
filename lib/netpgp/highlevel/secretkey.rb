@@ -193,6 +193,7 @@ class SecretKey
   def add_subkey(subkey)
     raise if subkey.subkeys.any?
     subkey.parent = self
+    subkey.userids = @userids
     @subkeys.push(subkey)
   end
 
@@ -246,9 +247,11 @@ class SecretKey
     native_key[:type] = :PGP_PTAG_CT_SECRET_KEY
     native_key[:sigid] = @public_key.key_id
     to_native(native_key[:key][:seckey])
-    @userids.each {|userid|
-      LibNetPGP::dynarray_append_item(native_key, 'uid', :string, userid)
-    }
+    if not @parent
+      @userids.each {|userid|
+        LibNetPGP::dynarray_append_item(native_key, 'uid', :string, userid)
+      }
+    end
     @raw_subpackets.each {|bytes|
       packet = LibNetPGP::PGPSubPacket.new
       length = bytes.bytesize

@@ -105,6 +105,7 @@ class PublicKey
   def add_subkey(subkey)
     raise if subkey.subkeys.any?
     subkey.parent = self
+    subkey.userids = @userids
     @subkeys.push(subkey)
   end
 
@@ -136,9 +137,11 @@ class PublicKey
     native_key[:type] = :PGP_PTAG_CT_PUBLIC_KEY
     native_key[:sigid] = key_id
     to_native(native_key[:key][:pubkey])
-    @userids.each {|userid|
-      LibNetPGP::dynarray_append_item(native_key, 'uid', :string, userid)
-    }
+    if not @parent
+      @userids.each {|userid|
+        LibNetPGP::dynarray_append_item(native_key, 'uid', :string, userid)
+      }
+    end
   end
 
 end
