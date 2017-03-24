@@ -29,20 +29,14 @@ class Keyring
     NetPGP::verify(@keys, data, armored)
   end
 
-  # Export a specific key
-  def export_key(key, armored=true)
-    # no exporting of subkeys directly
+  def export(key, armored=true)
     raise if key.parent
-    case
-    when key.is_a?(PublicKey)
-      export_public_key(key, armored)
-    when key.is_a?(SecretKey)
+    is_public = key.is_a?(PublicKey)
+    if is_public
+      seckey = secret_keys.find {|sk| sk.key_id == key.key_id}
+    else
+      seckey = key
     end
-  end
-
-  def export_public_key(key, armored=true)
-    # we'll need the corresponding secret key for signatures
-    seckey = secret_keys.find {|sk| sk.key_id == key.key_id}
     return nil if not seckey
     output_ptr = FFI::MemoryPointer.new(:pointer)
     mem_ptr = FFI::MemoryPointer.new(:pointer)
@@ -53,22 +47,25 @@ class Keyring
       LibNetPGP::pgp_setup_memory_write(output_ptr, mem_ptr, 4096)
       output = LibNetPGP::PGPOutput.new(output_ptr.read_pointer)
       mem = LibNetPGP::PGPMemory.new(mem_ptr.read_pointer)
-      native = LibNetPGP::PGPKey.new
+      native_ptr = LibC::calloc(1, LibNetPGP::PGPKey.size)
+      native = LibNetPGP::PGPKey.new(native_ptr)
+      native_auto = FFI::AutoPointer.new(native_ptr, LibNetPGP::PGPKey.method(:release))
       key.to_native_key(native)
-      if seckey
-        decrypted_seckey = seckey.decrypted_seckey
-        if decrypted_seckey
-          seckey = SecretKey.from_native(decrypted_seckey)
-          seckey.to_native(native[:key][:seckey])
-          native[:type] = :PGP_PTAG_CT_SECRET_KEY
-        end
+      decrypted_seckey = seckey.decrypted_seckey
+      return nil if not decrypted_seckey
+      # this is necessary for signatures
+      seckey = SecretKey.from_native(decrypted_seckey)
+      seckey.to_native(native[:key][:seckey])
+      native[:type] = :PGP_PTAG_CT_SECRET_KEY
+      if is_public
+        LibNetPGP::dynarray_clear(native, 'uid', :string)
+        key.userids.each {|userid|
+          LibNetPGP::pgp_add_selfsigned_userid(native, userid)
+        }
       end
-      LibNetPGP::dynarray_clear(native, 'uid', :string)
-      key.userids.each {|userid|
-        LibNetPGP::pgp_add_selfsigned_userid(native, userid)
-      }
-      subkeysring_mem = LibC::calloc(1, LibNetPGP::PGPKeyring.size)
-      subkeysring = LibNetPGP::PGPKeyring.new(subkeysring_mem)
+      # PGPKeyring is a ManagedStruct
+      subkeysring_ptr = LibC::calloc(1, LibNetPGP::PGPKeyring.size)
+      subkeysring = LibNetPGP::PGPKeyring.new(subkeysring_ptr)
       NetPGP::keys_to_native_keyring(key.subkeys, subkeysring)
       # add a binding signature to each subkey
       (0..LibNetPGP::dynarray_count(subkeysring, 'key') - 1).each {|n|
@@ -76,7 +73,27 @@ class Keyring
         LibNetPGP::dynarray_clear(subkey, 'packet', LibNetPGP::PGPSubPacket)
         NetPGP::add_subkey_signature(native, subkey)
       }
-      ret = LibNetPGP::pgp_write_xfer_pubkey(output, native, subkeysring, armored ? 1 : 0)
+      if is_public
+        ret = LibNetPGP::pgp_write_xfer_pubkey(output, native, subkeysring, armored ? 1 : 0)
+      else
+        decrypted_key_ptr = LibC::calloc(1, LibNetPGP::PGPKey.size)
+        decrypted_key = LibNetPGP::PGPKey.new(decrypted_key_ptr)
+        decrypted_key_auto = FFI::AutoPointer.new(decrypted_key_ptr, LibNetPGP::PGPKey.method(:release))
+        seckey.to_native_key(decrypted_key)
+        key.userids.each {|userid|
+          LibNetPGP::pgp_add_selfsigned_userid(decrypted_key, userid)
+        }
+        decrypted_key[:key][:seckey][:s2k_usage] = :PGP_S2KU_ENCRYPTED_AND_HASHED
+        decrypted_key[:key][:seckey][:alg] = :PGP_SA_CAST5
+        decrypted_key[:key][:seckey][:s2k_specifier] = :PGP_S2KS_SALTED
+        (0..LibNetPGP::dynarray_count(subkeysring, 'key') - 1).each {|n|
+          subkey = LibNetPGP::dynarray_get_item(subkeysring, 'key', LibNetPGP::PGPKey, n)
+          subkey[:key][:seckey][:s2k_usage] = :PGP_S2KU_ENCRYPTED_AND_HASHED
+          subkey[:key][:seckey][:alg] = :PGP_SA_CAST5
+          subkey[:key][:seckey][:s2k_specifier] = :PGP_S2KS_SALTED
+        }
+        ret = LibNetPGP::pgp_write_xfer_seckey(output, decrypted_key, key.passphrase, key.passphrase.size, subkeysring, armored ? 1 : 0)
+      end
       return nil if ret != 1
       data = mem[:buf].read_bytes(mem[:length])
       data

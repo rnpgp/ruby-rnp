@@ -164,7 +164,7 @@ module LibNetPGP
                   [PGPOutput.by_ref, PGPKey.by_ref, :pointer, :uint],
                   :uint
   attach_function :pgp_write_xfer_seckey,
-                  [PGPOutput.by_ref, PGPKey.by_ref, :pointer, :size_t, :uint],
+                  [PGPOutput.by_ref, PGPKey.by_ref, :pointer, :size_t, :pointer, :uint],
                   :uint
 
   attach_function :pgp_create_sig_new,
