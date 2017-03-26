@@ -201,7 +201,7 @@ class SecretKey
     @subkeys.push(subkey)
   end
 
-  def self.generate(options={})
+  def self.generate(passphrase, options={})
     valid_options = [:key_length, :public_key_algorithm, :algorithm_params,
                      :hash_algorithm, :symmetric_key_algorithm]
     for option in options.keys
@@ -219,7 +219,9 @@ class SecretKey
     native_key = nil
     begin
       native_key = LibNetPGP::pgp_rsa_new_key(key_length, pkalg_params[:e], hashalg_s, skalg_s)
-      SecretKey::from_native(native_key[:key][:seckey])
+      key = SecretKey::from_native(native_key[:key][:seckey])
+      key.passphrase = passphrase
+      key
     ensure
       LibNetPGP::pgp_keydata_free(native_key) if native_key
     end
@@ -279,19 +281,26 @@ class SecretKey
   end
 
   def decrypted_seckey
-    native_ptr = LibC::calloc(1, LibNetPGP::PGPKey.size)
-    native = LibNetPGP::PGPKey.new(native_ptr)
-    native_auto = FFI::AutoPointer.new(native_ptr, LibNetPGP::PGPKey.method(:release))
-    to_native_key(native)
-    rd, wr = IO.pipe
-    wr.write(@passphrase + "\n")
-    wr.close
-    passfp = LibC::fdopen(rd.to_i, 'r')
-    decrypted = LibNetPGP::pgp_decrypt_seckey(native, passfp)
-    rd.close
-    LibC::fclose(passfp)
-    return nil if not decrypted or decrypted.null?
-    LibNetPGP::PGPSecKey.new(decrypted)
+    if encrypted?
+      native_ptr = LibC::calloc(1, LibNetPGP::PGPKey.size)
+      native = LibNetPGP::PGPKey.new(native_ptr)
+      native_auto = FFI::AutoPointer.new(native_ptr, LibNetPGP::PGPKey.method(:release))
+      to_native_key(native)
+      rd, wr = IO.pipe
+      wr.write(@passphrase + "\n")
+      wr.close
+      passfp = LibC::fdopen(rd.to_i, 'r')
+      decrypted = LibNetPGP::pgp_decrypt_seckey(native, passfp)
+      rd.close
+      LibC::fclose(passfp)
+      return nil if not decrypted or decrypted.null?
+      LibNetPGP::PGPSecKey.new(decrypted)
+    else
+      native_ptr = LibC::calloc(1, LibNetPGP::PGPSecKey.size)
+      native = LibNetPGP::PGPSecKey.new(native_ptr)
+      to_native(native)
+      native
+    end
   end
 
   private
