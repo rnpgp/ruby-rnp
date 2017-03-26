@@ -69,6 +69,15 @@ def self.mpis_to_native(alg, mpi, native)
   else
     raise "Unsupported PK algorithm: #{alg}"
   end
+  # Ensure we're not leaking memory from a prior call.
+  # This just frees all the BNs.
+  if native.is_a?(LibNetPGP::PGPSecKey)
+    LibNetPGP::pgp_seckey_free(native)
+  elsif native.is_a?(LibNetPGP::PGPPubKey)
+    LibNetPGP::pgp_pubkey_free(native)
+  else
+    raise
+  end
   NetPGP::mpi_to_native(mpi, material)
 end
 
