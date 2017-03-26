@@ -17,6 +17,8 @@ class SecretKey
                 :string_to_key_specifier,
                 :symmetric_key_algorithm,
                 :hash_algorithm,
+                :iv,
+                :check_hash,
                 :mpi,
                 :userids,
                 :parent,
@@ -31,6 +33,8 @@ class SecretKey
     @string_to_key_specifier = nil
     @symmetric_key_algorithm = nil
     @hash_algorithm = nil
+    @iv = nil
+    @check_hash = nil
     @mpi = {}
     @userids = []
     @parent = nil
@@ -228,6 +232,10 @@ class SecretKey
     seckey.string_to_key_specifier = LibNetPGP::enum_value(sk[:s2k_specifier])
     seckey.symmetric_key_algorithm = LibNetPGP::enum_value(sk[:alg])
     seckey.hash_algorithm = LibNetPGP::enum_value(sk[:hash_alg]) || HashAlgorithm::SHA1
+    seckey.iv = sk[:iv].to_ptr.read_bytes(sk[:iv].size)
+    if not sk[:checkhash].null?
+      seckey.check_hash = sk[:checkhash].read_bytes(LibNetPGP::PGP_CHECKHASH_SIZE)
+    end
     seckey.mpi = NetPGP::mpis_from_native(sk[:pubkey][:alg], sk)
     seckey.encrypted = encrypted
     seckey
@@ -239,7 +247,15 @@ class SecretKey
     native[:s2k_specifier] = @string_to_key_specifier
     native[:alg] = @symmetric_key_algorithm
     native[:hash_alg] = @hash_algorithm
+    # zero IV, then copy
+    native[:iv].to_ptr.write_bytes("\x00" * native[:iv].size)
+    native[:iv].to_ptr.write_bytes(@iv) if @iv
     NetPGP::mpis_to_native(PublicKeyAlgorithm::to_native(@public_key.public_key_algorithm), @mpi, native)
+    # note: this has to come after mpis_to_native because that frees ptrs
+    if @check_hash
+      native[:checkhash] = LibC::calloc(1, LibNetPGP::PGP_CHECKHASH_SIZE)
+      native[:checkhash].write_bytes(@check_hash)
+    end
   end
 
   def to_native_key(native_key)
