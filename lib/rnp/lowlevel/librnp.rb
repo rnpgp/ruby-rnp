@@ -5,7 +5,7 @@ require_relative 'structs'
 
 module LibRNP
   extend FFI::Library
-  ffi_lib ['libnetpgp.so.3.0', 'libnetpgp.so.3', 'libnetpgp.so']
+  ffi_lib ['librnp.so']
 
   attach_function :pgp_parse_options,
                   [PGPStream.by_ref, :pgp_content_enum, :pgp_parse_type_t],
