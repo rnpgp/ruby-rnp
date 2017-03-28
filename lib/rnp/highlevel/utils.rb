@@ -1,4 +1,4 @@
-module NetPGP
+module RNP
 
 def self.bignum_byte_count(bn)
   # Note: This probably assumes that the ruby implementation
@@ -12,7 +12,7 @@ def self.stream_errors(stream)
 
   errors = []
   until error_ptr.null?
-    error = LibNetPGP::PGPError.new(error_ptr)
+    error = LibRNP::PGPError.new(error_ptr)
 
     error_desc = "#{error[:file]}:#{error[:line]}: #{error[:errcode]} #{error[:comment]}"
     errors.push(error_desc)
@@ -28,7 +28,7 @@ def self.mpi_from_native(native)
     if native[member].null?
       mpi[member] = nil
     else
-      mpi[member] = LibNetPGP::bn2hex(native[member]).hex
+      mpi[member] = LibRNP::bn2hex(native[member]).hex
     end
   }
   mpi
@@ -45,7 +45,7 @@ def self.mpis_from_native(alg, native)
     else
       raise "Unsupported PK algorithm: #{alg}"
   end
-  NetPGP::mpi_from_native(material)
+  RNP::mpi_from_native(material)
 end
 
 def self.mpi_to_native(mpi, native)
@@ -53,7 +53,7 @@ def self.mpi_to_native(mpi, native)
     if mpi[name] == nil
       native[name] = nil
     else
-      native[name] = LibNetPGP::num2bn(value)
+      native[name] = LibRNP::num2bn(value)
     end
   }
 end
@@ -71,49 +71,49 @@ def self.mpis_to_native(alg, mpi, native)
   end
   # Ensure we're not leaking memory from a prior call.
   # This just frees all the BNs.
-  if native.is_a?(LibNetPGP::PGPSecKey)
-    LibNetPGP::pgp_seckey_free(native)
-  elsif native.is_a?(LibNetPGP::PGPPubKey)
-    LibNetPGP::pgp_pubkey_free(native)
+  if native.is_a?(LibRNP::PGPSecKey)
+    LibRNP::pgp_seckey_free(native)
+  elsif native.is_a?(LibRNP::PGPPubKey)
+    LibRNP::pgp_pubkey_free(native)
   else
     raise
   end
-  NetPGP::mpi_to_native(mpi, material)
+  RNP::mpi_to_native(mpi, material)
 end
 
 
 # Add a subkey binding signature (type 0x18) to a key.
 # Note that this should be used for encryption subkeys.
 #
-# @param key [LibNetPGP::PGPKey]
-# @param subkey [LibNetPGP::PGPKey]
+# @param key [LibRNP::PGPKey]
+# @param subkey [LibRNP::PGPKey]
 def self.add_subkey_signature(key, subkey)
   sig = nil
   sigoutput = nil
   mem_sig = nil
   begin
-    sig = LibNetPGP::pgp_create_sig_new
-    LibNetPGP::pgp_sig_start_subkey_sig(sig, key[:key][:pubkey], subkey[:key][:pubkey], :PGP_SIG_SUBKEY)
-    LibNetPGP::pgp_add_time(sig, subkey[:key][:pubkey][:birthtime], 'birth')
+    sig = LibRNP::pgp_create_sig_new
+    LibRNP::pgp_sig_start_subkey_sig(sig, key[:key][:pubkey], subkey[:key][:pubkey], :PGP_SIG_SUBKEY)
+    LibRNP::pgp_add_time(sig, subkey[:key][:pubkey][:birthtime], 'birth')
     # TODO expiration
-    LibNetPGP::pgp_add_issuer_keyid(sig, key[:sigid])
-    LibNetPGP::pgp_end_hashed_subpkts(sig)
+    LibRNP::pgp_add_issuer_keyid(sig, key[:sigid])
+    LibRNP::pgp_end_hashed_subpkts(sig)
 
     sigoutput_ptr = FFI::MemoryPointer.new(:pointer)
     mem_sig_ptr = FFI::MemoryPointer.new(:pointer)
-    LibNetPGP::pgp_setup_memory_write(sigoutput_ptr, mem_sig_ptr, 128)
-    sigoutput = LibNetPGP::PGPOutput.new(sigoutput_ptr.read_pointer)
-    LibNetPGP::pgp_write_sig(sigoutput, sig, key[:key][:pubkey], key[:key][:seckey])
-    mem_sig = LibNetPGP::PGPMemory.new(mem_sig_ptr.read_pointer)
-    sigpkt = LibNetPGP::PGPSubPacket.new
-    sigpkt[:length] = LibNetPGP::pgp_mem_len(mem_sig)
-    sigpkt[:raw] = LibNetPGP::pgp_mem_data(mem_sig)
-    LibNetPGP::pgp_add_subpacket(subkey, sigpkt)
+    LibRNP::pgp_setup_memory_write(sigoutput_ptr, mem_sig_ptr, 128)
+    sigoutput = LibRNP::PGPOutput.new(sigoutput_ptr.read_pointer)
+    LibRNP::pgp_write_sig(sigoutput, sig, key[:key][:pubkey], key[:key][:seckey])
+    mem_sig = LibRNP::PGPMemory.new(mem_sig_ptr.read_pointer)
+    sigpkt = LibRNP::PGPSubPacket.new
+    sigpkt[:length] = LibRNP::pgp_mem_len(mem_sig)
+    sigpkt[:raw] = LibRNP::pgp_mem_data(mem_sig)
+    LibRNP::pgp_add_subpacket(subkey, sigpkt)
   ensure
-    LibNetPGP::pgp_create_sig_delete(sig) if sig
-    LibNetPGP::pgp_teardown_memory_write(sigoutput, mem_sig) if mem_sig
+    LibRNP::pgp_create_sig_delete(sig) if sig
+    LibRNP::pgp_teardown_memory_write(sigoutput, mem_sig) if mem_sig
   end
 end
 
-end # module NetPGP
+end # module RNP
 

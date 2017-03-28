@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 require 'optparse'
 
-require_relative '../../lib/netpgp'
+require_relative '../../lib/rnp'
 
 options = {armored: false, keys_armored: false}
 parser = OptionParser.new do |opts|
@@ -26,7 +26,7 @@ end
 
 pubkey_filename = ARGV.shift
 
-keyring = NetPGP::load_keyring(File.binread(pubkey_filename), options[:keys_armored])
+keyring = RNP::load_keyring(File.binread(pubkey_filename), options[:keys_armored])
 
 pubkey = keyring[0]
 

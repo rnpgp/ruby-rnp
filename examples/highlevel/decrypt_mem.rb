@@ -2,7 +2,7 @@
 require 'optparse'
 require 'io/console'
 
-require_relative '../../lib/netpgp'
+require_relative '../../lib/rnp'
 
 options = {armored: false, keys_armored: false}
 parser = OptionParser.new do |opts|
@@ -28,7 +28,7 @@ end
 seckey_filename = ARGV.shift
 passphrase = ARGV.shift + "\n"
 
-secring = NetPGP::load_keyring(File.binread(seckey_filename), options[:keys_armored])
+secring = RNP::load_keyring(File.binread(seckey_filename), options[:keys_armored])
 
 $stdin.binmode
 data = $stdin.read

@@ -2,7 +2,7 @@
 require 'optparse'
 require 'io/console'
 
-require_relative '../../lib/netpgp'
+require_relative '../../lib/rnp'
 
 options = {armored: false, keys_armored: false}
 parser = OptionParser.new do |opts|
@@ -31,21 +31,21 @@ input_filename = ARGV.shift
 output_filename = ARGV.shift
 
 # Load pubkey/keyring
-pubkeyring_mem = LibC::calloc(1, LibNetPGP::PGPKeyring.size)
-pubkeyring = LibNetPGP::PGPKeyring.new(pubkeyring_mem)
-if 1 != LibNetPGP::pgp_keyring_fileread(pubkeyring, options[:keys_armored] ? 1 : 0, pubkey_filename)
+pubkeyring_mem = LibC::calloc(1, LibRNP::PGPKeyring.size)
+pubkeyring = LibRNP::PGPKeyring.new(pubkeyring_mem)
+if 1 != LibRNP::pgp_keyring_fileread(pubkeyring, options[:keys_armored] ? 1 : 0, pubkey_filename)
   puts 'Errors encountered while loading public keyring.'
   exit 1
 end
 # Load seckey/keyring
-seckeyring_mem = LibC::calloc(1, LibNetPGP::PGPKeyring.size)
-seckeyring = LibNetPGP::PGPKeyring.new(seckeyring_mem)
-if 1 != LibNetPGP::pgp_keyring_fileread(seckeyring, options[:keys_armored] ? 1 : 0, seckey_filename)
+seckeyring_mem = LibC::calloc(1, LibRNP::PGPKeyring.size)
+seckeyring = LibRNP::PGPKeyring.new(seckeyring_mem)
+if 1 != LibRNP::pgp_keyring_fileread(seckeyring, options[:keys_armored] ? 1 : 0, seckey_filename)
   puts 'Errors encountered while loading secret keyring.'
   exit 1
 end
 
-pgpio = LibNetPGP::PGPIO.new
+pgpio = LibRNP::PGPIO.new
 stdout_fp = LibC::fdopen($stdout.to_i, 'w')
 stderr_fp = LibC::fdopen($stderr.to_i, 'w')
 pgpio[:outs] = stdout_fp
@@ -65,7 +65,7 @@ overwrite = 1
 sshkeys = 0
 numtries = 1
 
-ret = LibNetPGP::pgp_decrypt_file(pgpio, input_filename, output_filename, seckeyring, pubkeyring, armored, overwrite, sshkeys, passfp, numtries, nil)
+ret = LibRNP::pgp_decrypt_file(pgpio, input_filename, output_filename, seckeyring, pubkeyring, armored, overwrite, sshkeys, passfp, numtries, nil)
 rd.close
 LibC::fclose(passfp)
 if ret == 1

@@ -1,7 +1,7 @@
 require_relative 'libopenssl'
 require_relative 'libc'
 
-module LibNetPGP
+module LibRNP
 
   # BIGNUM* to hexadecimal string
   def self.bn2hex(bn)

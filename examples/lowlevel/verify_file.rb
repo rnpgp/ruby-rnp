@@ -2,7 +2,7 @@
 require 'optparse'
 require 'io/console'
 
-require_relative '../../lib/netpgp'
+require_relative '../../lib/rnp'
 
 options = {keys_armored: false, armored: false}
 parser = OptionParser.new do |opts|
@@ -29,14 +29,14 @@ pubkey_filename = ARGV.shift
 input_filename = ARGV.shift
 
 # Load keys/keyring
-keyring_mem = LibC::calloc(1, LibNetPGP::PGPKeyring.size)
-keyring = LibNetPGP::PGPKeyring.new(keyring_mem)
-if 1 != LibNetPGP::pgp_keyring_fileread(keyring, options[:keys_armored] ? 1 : 0, pubkey_filename)
+keyring_mem = LibC::calloc(1, LibRNP::PGPKeyring.size)
+keyring = LibRNP::PGPKeyring.new(keyring_mem)
+if 1 != LibRNP::pgp_keyring_fileread(keyring, options[:keys_armored] ? 1 : 0, pubkey_filename)
   puts 'Errors encountered while loading keyring.'
   exit 1
 end
 
-pgpio = LibNetPGP::PGPIO.new
+pgpio = LibRNP::PGPIO.new
 stdout_fp = LibC::fdopen($stdout.to_i, 'w')
 stderr_fp = LibC::fdopen($stderr.to_i, 'w')
 pgpio[:outs] = stdout_fp
@@ -45,8 +45,8 @@ pgpio[:res] = stdout_fp
 
 armored = options[:armored] ? 1 : 0
 
-validation = LibNetPGP::PGPValidation.new
-ret = LibNetPGP::pgp_validate_file(pgpio, validation, input_filename, nil, armored, keyring)
+validation = LibRNP::PGPValidation.new
+ret = LibRNP::pgp_validate_file(pgpio, validation, input_filename, nil, armored, keyring)
 if ret == 1
   puts 'Success'
 else

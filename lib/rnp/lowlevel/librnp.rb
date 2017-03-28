@@ -3,7 +3,7 @@ require 'ffi'
 require_relative 'enums'
 require_relative 'structs'
 
-module LibNetPGP
+module LibRNP
   extend FFI::Library
   ffi_lib ['libnetpgp.so.3.0', 'libnetpgp.so.3', 'libnetpgp.so']
 

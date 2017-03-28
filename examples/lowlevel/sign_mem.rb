@@ -2,7 +2,7 @@
 require 'optparse'
 require 'io/console'
 
-require_relative '../../lib/netpgp'
+require_relative '../../lib/rnp'
 
 options = {armored: false, keys_armored: false, cleartext: false}
 parser = OptionParser.new do |opts|
@@ -32,18 +32,18 @@ seckey_filename = ARGV.shift
 passphrase = ARGV.shift + "\n"
 
 # Load seckey/keyring
-seckeyring_mem = LibC::calloc(1, LibNetPGP::PGPKeyring.size)
-seckeyring = LibNetPGP::PGPKeyring.new(seckeyring_mem)
-if 1 != LibNetPGP::pgp_keyring_fileread(seckeyring, options[:keys_armored] ? 1 : 0, seckey_filename)
+seckeyring_mem = LibC::calloc(1, LibRNP::PGPKeyring.size)
+seckeyring = LibRNP::PGPKeyring.new(seckeyring_mem)
+if 1 != LibRNP::pgp_keyring_fileread(seckeyring, options[:keys_armored] ? 1 : 0, seckey_filename)
   puts 'Errors encountered while loading secret keyring.'
   exit 1
 end
 # Find first seckey
-keycount = LibNetPGP::dynarray_count(seckeyring, 'key')
+keycount = LibRNP::dynarray_count(seckeyring, 'key')
 seckey = nil
 (0..keycount - 1).each {|keyn|
-  key = LibNetPGP::dynarray_get_item(seckeyring, 'key', LibNetPGP::PGPKey, keyn)
-  seckey = key if LibNetPGP::pgp_is_key_secret(key)
+  key = LibRNP::dynarray_get_item(seckeyring, 'key', LibRNP::PGPKey, keyn)
+  seckey = key if LibRNP::pgp_is_key_secret(key)
   break if seckey != nil
 }
 if seckey == nil
@@ -51,7 +51,7 @@ if seckey == nil
   exit 1
 end
 
-pgpio = LibNetPGP::PGPIO.new
+pgpio = LibRNP::PGPIO.new
 stderr_fp = LibC::fdopen($stderr.to_i, 'w')
 # send all to stderr
 pgpio[:outs] = stderr_fp
@@ -62,7 +62,7 @@ rd, wr = IO.pipe
 wr.write passphrase
 wr.close
 passfp = LibC::fdopen(rd.to_i, 'r')
-seckey = LibNetPGP::pgp_decrypt_seckey(seckey, passfp)
+seckey = LibRNP::pgp_decrypt_seckey(seckey, passfp)
 rd.close
 LibC::fclose(passfp)
 
@@ -70,7 +70,7 @@ if seckey == nil
   puts 'Invalid passphrase.'
   exit 1
 end
-seckey = LibNetPGP::PGPSecKey.new(seckey)
+seckey = LibRNP::PGPSecKey.new(seckey)
 
 armored = options[:armored] ? 1 : 0
 cleartext = options[:cleartext] ? 1 : 0
@@ -83,12 +83,12 @@ $stdin.binmode
 data = $stdin.read
 data_buf = FFI::MemoryPointer.new(:uint8, data.bytesize)
 data_buf.put_bytes(0, data)
-memory_ptr = LibNetPGP::pgp_sign_buf(pgpio, data_buf, data_buf.size, seckey, from, duration, hashname, armored, cleartext)
+memory_ptr = LibRNP::pgp_sign_buf(pgpio, data_buf, data_buf.size, seckey, from, duration, hashname, armored, cleartext)
 if not memory_ptr.null?
-  memory = LibNetPGP::PGPMemory.new(memory_ptr)
+  memory = LibRNP::PGPMemory.new(memory_ptr)
   $stdout.binmode
   $stdout.puts memory[:buf].read_bytes(memory[:length])
-  LibNetPGP::pgp_memory_free(memory)
+  LibRNP::pgp_memory_free(memory)
   $stderr.puts 'Success'
 else
   $stderr.puts 'Failed!'

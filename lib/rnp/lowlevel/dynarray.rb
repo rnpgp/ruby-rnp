@@ -1,6 +1,6 @@
 require 'ffi'
 
-module LibNetPGP
+module LibRNP
 
   def self.dynarray_count(struct, field)
     struct[(field + 'c').to_sym]

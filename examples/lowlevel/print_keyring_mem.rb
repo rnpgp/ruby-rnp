@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 require 'optparse'
 
-require_relative '../../lib/netpgp'
+require_relative '../../lib/rnp'
 
 options = {armored: false}
 parser = OptionParser.new do |opts|
@@ -21,8 +21,8 @@ def print_pubkey(pubkey, indent=0)
     puts "#{' ' * indent}Algorithm: #{pubkey[:alg]}"
     case pubkey[:alg]
     when :PGP_PKA_RSA
-      n = LibNetPGP::bn2hex(pubkey[:key][:rsa][:n])
-      e = LibNetPGP::bn2hex(pubkey[:key][:rsa][:e])
+      n = LibRNP::bn2hex(pubkey[:key][:rsa][:n])
+      e = LibRNP::bn2hex(pubkey[:key][:rsa][:e])
       puts "#{' ' * indent}n: 0x#{n}"
       puts "#{' ' * indent}e: 0x#{e}"
     end
@@ -40,44 +40,44 @@ end
 parser.parse!
 armored = options[:armored] ? 1 : 0
 
-pgpio = LibNetPGP::PGPIO.new
+pgpio = LibRNP::PGPIO.new
 stdout_fp = LibC::fdopen($stdout.to_i, 'w')
 stderr_fp = LibC::fdopen($stderr.to_i, 'w')
 pgpio[:outs] = stdout_fp
 pgpio[:errs] = stderr_fp
 pgpio[:res] = stdout_fp
 
-mem_ptr = LibC::calloc(1, LibNetPGP::PGPMemory.size)
-mem = LibNetPGP::PGPMemory.new(mem_ptr)
+mem_ptr = LibC::calloc(1, LibRNP::PGPMemory.size)
+mem = LibRNP::PGPMemory.new(mem_ptr)
 
 $stdin.binmode
 data = $stdin.read
 data_buf = FFI::MemoryPointer.new(:uint8, data.bytesize)
 data_buf.put_bytes(0, data)
-LibNetPGP::pgp_memory_add(mem, data_buf, data_buf.size)
+LibRNP::pgp_memory_add(mem, data_buf, data_buf.size)
 
-keyring_mem = LibC::calloc(1, LibNetPGP::PGPKeyring.size)
-keyring = LibNetPGP::PGPKeyring.new(keyring_mem)
-if 1 != LibNetPGP::pgp_keyring_read_from_mem(pgpio, keyring, armored, mem)
+keyring_mem = LibC::calloc(1, LibRNP::PGPKeyring.size)
+keyring = LibRNP::PGPKeyring.new(keyring_mem)
+if 1 != LibRNP::pgp_keyring_read_from_mem(pgpio, keyring, armored, mem)
   puts 'Failed to load keyring'
   exit 1
 end
-keycount = LibNetPGP::dynarray_count(keyring, 'key')
+keycount = LibRNP::dynarray_count(keyring, 'key')
 puts "Loaded #{keycount} key(s)"
 
 (0..keycount - 1).each {|keyn|
-  key = LibNetPGP::dynarray_get_item(keyring, 'key', LibNetPGP::PGPKey, keyn)
+  key = LibRNP::dynarray_get_item(keyring, 'key', LibRNP::PGPKey, keyn)
   puts "[Key ##{keyn}]"
-  uidcount = LibNetPGP::dynarray_count(key, 'uid')
+  uidcount = LibRNP::dynarray_count(key, 'uid')
   print "User ids: "
-  puts LibNetPGP::dynarray_get_item(key, 'uid', :string, 0)
+  puts LibRNP::dynarray_get_item(key, 'uid', :string, 0)
   (1..uidcount - 1).each {|uidn|
     print '          '
-    puts LibNetPGP::dynarray_get_item(key, 'uid', :string, uidn)
+    puts LibRNP::dynarray_get_item(key, 'uid', :string, uidn)
   }
-  puts "Subpackets:  #{LibNetPGP::dynarray_count(key, 'packet')}"
-  puts "Subkeys:     #{LibNetPGP::dynarray_count(key, 'subsig')}"
-  puts "Revocations: #{LibNetPGP::dynarray_count(key, 'revoke')}"
+  puts "Subpackets:  #{LibRNP::dynarray_count(key, 'packet')}"
+  puts "Subsigs:     #{LibRNP::dynarray_count(key, 'subsig')}"
+  puts "Revocations: #{LibRNP::dynarray_count(key, 'revoke')}"
   printf "Key Flags: 0x%02X\n", key[:key_flags]
   case key[:type]
   when :PGP_PTAG_CT_PUBLIC_KEY
@@ -92,5 +92,5 @@ puts "Loaded #{keycount} key(s)"
   puts ''
 }
 
-LibNetPGP::pgp_memory_free(mem)
+LibRNP::pgp_memory_free(mem)
 

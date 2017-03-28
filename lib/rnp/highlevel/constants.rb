@@ -1,6 +1,6 @@
 require 'rubygems'
 
-module NetPGP
+module RNP
 
 class PublicKeyAlgorithm
   NONE = 0
@@ -15,7 +15,7 @@ class PublicKeyAlgorithm
 
   def self.from_native(alg)
     raise if alg.class != Symbol
-    LibNetPGP::PGP_PUBKEY_ALG_T[alg]
+    LibRNP::PGP_PUBKEY_ALG_T[alg]
   end
 
   def self.to_native(alg)
@@ -25,7 +25,7 @@ class PublicKeyAlgorithm
     else
       raise if alg.class != Fixnum
     end
-    LibNetPGP::PGP_PUBKEY_ALG_T[alg]
+    LibRNP::PGP_PUBKEY_ALG_T[alg]
   end
 
 end

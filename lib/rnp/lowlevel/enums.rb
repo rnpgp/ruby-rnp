@@ -1,6 +1,6 @@
 require 'ffi'
 
-module LibNetPGP
+module LibRNP
   extend FFI::Library
 
   enum :pgp_s2k_usage_t, [

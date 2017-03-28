@@ -1,11 +1,11 @@
-require 'netpgp'
+require 'rnp'
 require 'tempfile'
 
 describe 'SecretKey signing' do
 
   context 'with seckey_sign_only.asc' do
-    let(:pubring) { NetPGP::Keyring.load(File.read('spec/keys/pubkey_sign_only.asc')) }
-    let(:secring) { NetPGP::Keyring.load(File.read('spec/keys/seckey_sign_only.asc')) }
+    let(:pubring) { RNP::Keyring.load(File.read('spec/keys/pubkey_sign_only.asc')) }
+    let(:secring) { RNP::Keyring.load(File.read('spec/keys/seckey_sign_only.asc')) }
 
     it { expect(pubring.size).to eql 1 }
     it { expect(pubring.public_keys.size).to eql 1 }

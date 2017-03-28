@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 require 'optparse'
 
-require_relative '../../lib/netpgp'
+require_relative '../../lib/rnp'
 
 options = {armored: false, keys_armored: false}
 parser = OptionParser.new do |opts|
@@ -27,18 +27,18 @@ end
 pubkey_filename = ARGV.shift
 
 # Load keys/keyring
-keyring_mem = LibC::calloc(1, LibNetPGP::PGPKeyring.size)
-keyring = LibNetPGP::PGPKeyring.new(keyring_mem)
-if 1 != LibNetPGP::pgp_keyring_fileread(keyring, options[:keys_armored] ? 1 : 0, pubkey_filename)
+keyring_mem = LibC::calloc(1, LibRNP::PGPKeyring.size)
+keyring = LibRNP::PGPKeyring.new(keyring_mem)
+if 1 != LibRNP::pgp_keyring_fileread(keyring, options[:keys_armored] ? 1 : 0, pubkey_filename)
   puts 'Errors encountered while loading keyring.'
   exit 1
 end
 # Find first pubkey
-keycount = LibNetPGP::dynarray_count(keyring, 'key')
+keycount = LibRNP::dynarray_count(keyring, 'key')
 pubkey = nil
 (0..keycount - 1).each {|keyn|
-  key = LibNetPGP::dynarray_get_item(keyring, 'key', LibNetPGP::PGPKey, keyn)
-  pubkey = key if LibNetPGP::pgp_is_key_secret(key) == 0
+  key = LibRNP::dynarray_get_item(keyring, 'key', LibRNP::PGPKey, keyn)
+  pubkey = key if LibRNP::pgp_is_key_secret(key) == 0
   break if pubkey != nil
 }
 if pubkey == nil
@@ -46,7 +46,7 @@ if pubkey == nil
   exit 1
 end
 
-pgpio = LibNetPGP::PGPIO.new
+pgpio = LibRNP::PGPIO.new
 stdout_fp = LibC::fdopen($stdout.to_i, 'w')
 stderr_fp = LibC::fdopen($stderr.to_i, 'w')
 pgpio[:outs] = stdout_fp
@@ -60,12 +60,12 @@ $stdin.binmode
 data = $stdin.read
 data_buf = FFI::MemoryPointer.new(:uint8, data.bytesize)
 data_buf.put_bytes(0, data)
-memory_ptr = LibNetPGP::pgp_encrypt_buf(pgpio, data_buf, data_buf.size, pubkey, armored, cipher)
+memory_ptr = LibRNP::pgp_encrypt_buf(pgpio, data_buf, data_buf.size, pubkey, armored, cipher)
 
-memory = LibNetPGP::PGPMemory.new(memory_ptr)
+memory = LibRNP::PGPMemory.new(memory_ptr)
 $stdout.binmode
 $stdout.puts memory[:buf].read_bytes(memory[:length])
-LibNetPGP::pgp_memory_free(memory)
+LibRNP::pgp_memory_free(memory)
 
 if not memory.null?
   $stderr.puts 'Success'

@@ -3,7 +3,7 @@ require 'ffi'
 require_relative 'enums'
 require_relative 'constants'
 
-module LibNetPGP
+module LibRNP
   extend FFI::Library
 
   class PGPErrCode < FFI::Struct
@@ -64,7 +64,7 @@ module LibNetPGP
     # member in other structs and that will cause issues.
     # Use FFI::AutoPointer.
     def self.release(ptr)
-      LibNetPGP::pgp_pubkey_free(ptr)
+      LibRNP::pgp_pubkey_free(ptr)
       LibC::free(ptr)
     end
   end
@@ -426,7 +426,7 @@ module LibNetPGP
            :virtualpkt, :pointer
 
     def self.release(ptr)
-      LibNetPGP::pgp_stream_delete(ptr)
+      LibRNP::pgp_stream_delete(ptr)
     end
   end
 
@@ -443,7 +443,7 @@ module LibNetPGP
            :hashtype,   :pgp_hash_alg_t
 
     def self.release(ptr)
-      LibNetPGP::pgp_keyring_free(ptr)
+      LibRNP::pgp_keyring_free(ptr)
       LibC::free(ptr)
     end
 
@@ -492,7 +492,7 @@ module LibNetPGP
            :revocation,       PGPRevoke
 
     def self.release(ptr)
-      LibNetPGP::pgp_keydata_free(ptr)
+      LibRNP::pgp_keydata_free(ptr)
     end
   end
 
@@ -514,7 +514,7 @@ module LibNetPGP
            :duration,       :time_t
 
     def self.release(ptr)
-      LibNetPGP::pgp_validate_result_free(ptr)
+      LibRNP::pgp_validate_result_free(ptr)
     end
   end
 

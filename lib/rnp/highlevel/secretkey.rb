@@ -1,4 +1,4 @@
-module NetPGP
+module RNP
 
 require 'forwardable'
 
@@ -65,18 +65,18 @@ class SecretKey
     begin
       rd, wr = IO.pipe
       wr.write(@passphrase + "\n")
-      native_keyring_ptr = LibC::calloc(1, LibNetPGP::PGPKeyring.size)
-      native_keyring = LibNetPGP::PGPKeyring.new(native_keyring_ptr)
-      NetPGP::keys_to_native_keyring([self], native_keyring)
+      native_keyring_ptr = LibC::calloc(1, LibRNP::PGPKeyring.size)
+      native_keyring = LibRNP::PGPKeyring.new(native_keyring_ptr)
+      RNP::keys_to_native_keyring([self], native_keyring)
       pgpio = create_pgpio
       data_ptr = FFI::MemoryPointer.new(:uint8, data.bytesize)
       data_ptr.write_bytes(data)
       passfp = LibC::fdopen(rd.to_i, 'r')
-      mem_ptr = LibNetPGP::pgp_decrypt_buf(pgpio, data_ptr, data_ptr.size,
+      mem_ptr = LibRNP::pgp_decrypt_buf(pgpio, data_ptr, data_ptr.size,
                                            native_keyring, nil,
                                            armored ? 1 : 0, 0, passfp, 1, nil)
       return nil if mem_ptr.null?
-      mem = LibNetPGP::PGPMemory.new(mem_ptr)
+      mem = LibRNP::PGPMemory.new(mem_ptr)
       mem[:buf].read_bytes(mem[:length])
     ensure
       rd.close
@@ -94,7 +94,7 @@ class SecretKey
   # @param options [Hash] less-often used options that override defaults.
   #   * :from [Time] (defaults to Time.now) - signature creation time
   #   * :duration [Numeric] (defaults to 0) - signature duration/expiration
-  #   * :hash_algorithm [NetPGP::HashAlgorithm] (defaults to SHA1) -
+  #   * :hash_algorithm [RNP::HashAlgorithm] (defaults to SHA1) -
   #     hash algorithm to use
   #   * :cleartext [Boolean] (defaults to false) - whether this should be
   #     a cleartext/clearsign signature, which includes the original
@@ -122,14 +122,14 @@ class SecretKey
     return nil if not seckey
     memory = nil
     begin
-      memory_ptr = LibNetPGP::pgp_sign_buf(pgpio, data_buf, data_buf.size, seckey, from, duration, hashname, armored, cleartext)
+      memory_ptr = LibRNP::pgp_sign_buf(pgpio, data_buf, data_buf.size, seckey, from, duration, hashname, armored, cleartext)
       return nil if not memory_ptr or memory_ptr.null?
-      memory = LibNetPGP::PGPMemory.new(memory_ptr)
+      memory = LibRNP::PGPMemory.new(memory_ptr)
       signed_data = memory[:buf].read_bytes(memory[:length])
       signed_data
     ensure
-      LibNetPGP::pgp_memory_free(memory) if memory
-      LibNetPGP::pgp_seckey_free(seckey) if seckey
+      LibRNP::pgp_memory_free(memory) if memory
+      LibRNP::pgp_seckey_free(seckey) if seckey
     end
   end
 
@@ -144,7 +144,7 @@ class SecretKey
   # @param options [Hash] less-often used options that override defaults.
   #   * :from [Time] (defaults to Time.now) - signature creation time
   #   * :duration [Integer] (defaults to 0) - signature duration/expiration
-  #   * :hash_algorithm [{NetPGP::HashAlgorithm}] (defaults to SHA1) -
+  #   * :hash_algorithm [{RNP::HashAlgorithm}] (defaults to SHA1) -
   #     hash algorithm to use
   # @return [String] the signed data, or nil on error.
   def clearsign(data, armored=true, options={})
@@ -169,7 +169,7 @@ class SecretKey
   # @param options [Hash] less-often used options that override defaults.
   #   * :from [Time] (defaults to Time.now) - signature creation time
   #   * :duration [Integer] (defaults to 0) - signature duration/expiration
-  #   * :hash_algorithm [{NetPGP::HashAlgorithm}] (defaults to SHA1) -
+  #   * :hash_algorithm [{RNP::HashAlgorithm}] (defaults to SHA1) -
   #     hash algorithm to use
   # @return [Boolean] whether the signing was successful.
   def detached_sign(infile, sigfile=nil, armored=true, options={})
@@ -190,7 +190,7 @@ class SecretKey
     # Note: pgp_sign_detached calls pgp_seckey_free for us
     seckey = decrypted_seckey
     return false if not seckey
-    ret = LibNetPGP::pgp_sign_detached(pgpio, infile, sigfile, seckey, hashname, from, duration, armored, 1)
+    ret = LibRNP::pgp_sign_detached(pgpio, infile, sigfile, seckey, hashname, from, duration, armored, 1)
     return ret == 1
   end
 
@@ -218,27 +218,27 @@ class SecretKey
 
     native_key = nil
     begin
-      native_key = LibNetPGP::pgp_rsa_new_key(key_length, pkalg_params[:e], hashalg_s, skalg_s)
+      native_key = LibRNP::pgp_rsa_new_key(key_length, pkalg_params[:e], hashalg_s, skalg_s)
       key = SecretKey::from_native(native_key[:key][:seckey])
       key.passphrase = passphrase
       key
     ensure
-      LibNetPGP::pgp_keydata_free(native_key) if native_key
+      LibRNP::pgp_keydata_free(native_key) if native_key
     end
   end
 
   def self.from_native(sk, encrypted=false)
     seckey = SecretKey.new
     seckey.public_key = PublicKey::from_native(sk[:pubkey])
-    seckey.string_to_key_usage = LibNetPGP::enum_value(sk[:s2k_usage])
-    seckey.string_to_key_specifier = LibNetPGP::enum_value(sk[:s2k_specifier])
-    seckey.symmetric_key_algorithm = LibNetPGP::enum_value(sk[:alg])
-    seckey.hash_algorithm = LibNetPGP::enum_value(sk[:hash_alg]) || HashAlgorithm::SHA1
+    seckey.string_to_key_usage = LibRNP::enum_value(sk[:s2k_usage])
+    seckey.string_to_key_specifier = LibRNP::enum_value(sk[:s2k_specifier])
+    seckey.symmetric_key_algorithm = LibRNP::enum_value(sk[:alg])
+    seckey.hash_algorithm = LibRNP::enum_value(sk[:hash_alg]) || HashAlgorithm::SHA1
     seckey.iv = sk[:iv].to_ptr.read_bytes(sk[:iv].size)
     if not sk[:checkhash].null?
-      seckey.check_hash = sk[:checkhash].read_bytes(LibNetPGP::PGP_CHECKHASH_SIZE)
+      seckey.check_hash = sk[:checkhash].read_bytes(LibRNP::PGP_CHECKHASH_SIZE)
     end
-    seckey.mpi = NetPGP::mpis_from_native(sk[:pubkey][:alg], sk)
+    seckey.mpi = RNP::mpis_from_native(sk[:pubkey][:alg], sk)
     seckey.encrypted = encrypted
     seckey
   end
@@ -252,10 +252,10 @@ class SecretKey
     # zero IV, then copy
     native[:iv].to_ptr.write_bytes("\x00" * native[:iv].size)
     native[:iv].to_ptr.write_bytes(@iv) if @iv
-    NetPGP::mpis_to_native(PublicKeyAlgorithm::to_native(@public_key.public_key_algorithm), @mpi, native)
+    RNP::mpis_to_native(PublicKeyAlgorithm::to_native(@public_key.public_key_algorithm), @mpi, native)
     # note: this has to come after mpis_to_native because that frees ptrs
     if @check_hash
-      native[:checkhash] = LibC::calloc(1, LibNetPGP::PGP_CHECKHASH_SIZE)
+      native[:checkhash] = LibC::calloc(1, LibRNP::PGP_CHECKHASH_SIZE)
       native[:checkhash].write_bytes(@check_hash)
     end
   end
@@ -267,37 +267,37 @@ class SecretKey
     to_native(native_key[:key][:seckey])
     if not @parent
       @userids.each {|userid|
-        LibNetPGP::dynarray_append_item(native_key, 'uid', :string, userid)
+        LibRNP::dynarray_append_item(native_key, 'uid', :string, userid)
       }
     end
     @raw_subpackets.each {|bytes|
-      packet = LibNetPGP::PGPSubPacket.new
+      packet = LibRNP::PGPSubPacket.new
       length = bytes.bytesize
       packet[:length] = length
       packet[:raw] = LibC::calloc(1, length)
       packet[:raw].write_bytes(bytes)
-      LibNetPGP::dynarray_append_item(native_key, 'packet', LibNetPGP::PGPSubPacket, packet)
+      LibRNP::dynarray_append_item(native_key, 'packet', LibRNP::PGPSubPacket, packet)
     }
   end
 
   def decrypted_seckey
     if encrypted?
-      native_ptr = LibC::calloc(1, LibNetPGP::PGPKey.size)
-      native = LibNetPGP::PGPKey.new(native_ptr)
-      native_auto = FFI::AutoPointer.new(native_ptr, LibNetPGP::PGPKey.method(:release))
+      native_ptr = LibC::calloc(1, LibRNP::PGPKey.size)
+      native = LibRNP::PGPKey.new(native_ptr)
+      native_auto = FFI::AutoPointer.new(native_ptr, LibRNP::PGPKey.method(:release))
       to_native_key(native)
       rd, wr = IO.pipe
       wr.write(@passphrase + "\n")
       wr.close
       passfp = LibC::fdopen(rd.to_i, 'r')
-      decrypted = LibNetPGP::pgp_decrypt_seckey(native, passfp)
+      decrypted = LibRNP::pgp_decrypt_seckey(native, passfp)
       rd.close
       LibC::fclose(passfp)
       return nil if not decrypted or decrypted.null?
-      LibNetPGP::PGPSecKey.new(decrypted)
+      LibRNP::PGPSecKey.new(decrypted)
     else
-      native_ptr = LibC::calloc(1, LibNetPGP::PGPSecKey.size)
-      native = LibNetPGP::PGPSecKey.new(native_ptr)
+      native_ptr = LibC::calloc(1, LibRNP::PGPSecKey.size)
+      native = LibRNP::PGPSecKey.new(native_ptr)
       to_native(native)
       native
     end
@@ -305,7 +305,7 @@ class SecretKey
 
   private
   def create_pgpio
-    pgpio = LibNetPGP::PGPIO.new
+    pgpio = LibRNP::PGPIO.new
     pgpio[:outs] = LibC::fdopen($stdout.to_i, 'w')
     pgpio[:errs] = LibC::fdopen($stderr.to_i, 'w')
     pgpio[:res] = pgpio[:errs]
@@ -314,5 +314,5 @@ class SecretKey
 
 end
 
-end # module NetPGP
+end # module RNP
 

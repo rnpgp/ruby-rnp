@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-require_relative '../../lib/netpgp'
+require_relative '../../lib/rnp'
 
 def bignum_byte_count(bn)
   bn.to_s(16).length / 2
@@ -26,9 +26,9 @@ class PublicKey
   def bitcount
     case @public_key_algorithm
     when :PGP_PKA_RSA, :PGP_PKA_RSA_ENCRYPT_ONLY, :PGP_PKA_RSA_SIGN_ONLY
-      return NetPGP::bignum_byte_count(@n) * 8
+      return RNP::bignum_byte_count(@n) * 8
     when :PGP_PKA_DSA
-      case NetPGP::bignum_byte_count(@q)
+      case RNP::bignum_byte_count(@q)
       when 20
         1024
       when 28
@@ -37,7 +37,7 @@ class PublicKey
         3072
       end
     when :PGP_PKA_ELGAMAL
-      NetPGP::bignum_byte_count(@y) * 8
+      RNP::bignum_byte_count(@y) * 8
     end
     0
   end
@@ -55,19 +55,19 @@ PARSE_PUBLIC_KEY = Proc.new do |results, pkt, data|
     case pk[:alg]
     when :PGP_PKA_RSA, :PGP_PKA_RSA_ENCRYPT_ONLY, :PGP_PKA_RSA_SIGN_ONLY
       rsa = pk[:key][:rsa]
-      pubkey.mpi[:n] = LibNetPGP::bn2hex(rsa[:n]).hex
-      pubkey.mpi[:e] = LibNetPGP::bn2hex(rsa[:e]).hex
+      pubkey.mpi[:n] = LibRNP::bn2hex(rsa[:n]).hex
+      pubkey.mpi[:e] = LibRNP::bn2hex(rsa[:e]).hex
     when :PGP_PKA_DSA
       dsa = pk[:key][:dsa]
-      pubkey.mpi[:p] = LibNetPGP::bn2hex(dsa[:p]).hex
-      pubkey.mpi[:q] = LibNetPGP::bn2hex(dsa[:q]).hex
-      pubkey.mpi[:g] = LibNetPGP::bn2hex(dsa[:g]).hex
-      pubkey.mpi[:y] = LibNetPGP::bn2hex(dsa[:y]).hex
+      pubkey.mpi[:p] = LibRNP::bn2hex(dsa[:p]).hex
+      pubkey.mpi[:q] = LibRNP::bn2hex(dsa[:q]).hex
+      pubkey.mpi[:g] = LibRNP::bn2hex(dsa[:g]).hex
+      pubkey.mpi[:y] = LibRNP::bn2hex(dsa[:y]).hex
    when :PGP_PKA_ELGAMAL
       elg = pk[:key][:elgamal]
-      pubkey.mpi[:p] = LibNetPGP::bn2hex(rsa[:p]).hex
-      pubkey.mpi[:g] = LibNetPGP::bn2hex(rsa[:g]).hex
-      pubkey.mpi[:y] = LibNetPGP::bn2hex(rsa[:y]).hex
+      pubkey.mpi[:p] = LibRNP::bn2hex(rsa[:p]).hex
+      pubkey.mpi[:g] = LibRNP::bn2hex(rsa[:g]).hex
+      pubkey.mpi[:y] = LibRNP::bn2hex(rsa[:y]).hex
     else
       next :PGP_RELEASE_MEMORY     
     end
@@ -86,23 +86,23 @@ PARSE_PUBLIC_KEY = Proc.new do |results, pkt, data|
 end
 
 def load_pubkey(data, armored=false, print_errors=true)
-  stream_mem = LibC::calloc(1, LibNetPGP::PGPStream.size)
+  stream_mem = LibC::calloc(1, LibRNP::PGPStream.size)
   # This will free the above memory (PGPStream is a ManagedStruct)
-  stream = LibNetPGP::PGPStream.new(stream_mem)
+  stream = LibRNP::PGPStream.new(stream_mem)
   stream[:readinfo][:accumulate] = 1
-  LibNetPGP::pgp_parse_options(stream, :PGP_PTAG_SS_ALL, :PGP_PARSE_PARSED)
+  LibRNP::pgp_parse_options(stream, :PGP_PTAG_SS_ALL, :PGP_PARSE_PARSED)
 
   # This memory will be GC'd
   mem = FFI::MemoryPointer.new(:uint8, data.bytesize)
   mem.put_bytes(0, data)
 
-  LibNetPGP::pgp_reader_set_memory(stream, mem, mem.size)
+  LibRNP::pgp_reader_set_memory(stream, mem, mem.size)
   results = []
   callback = PARSE_PUBLIC_KEY.curry[results]
-  LibNetPGP::pgp_set_callback(stream, callback, nil)
-  LibNetPGP::pgp_reader_push_dearmour(stream) if armored
-  LibNetPGP::pgp_parse(stream, print_errors ? 1 : 0)
-  LibNetPGP::pgp_reader_pop_dearmour(stream) if armored
+  LibRNP::pgp_set_callback(stream, callback, nil)
+  LibRNP::pgp_reader_push_dearmour(stream) if armored
+  LibRNP::pgp_parse(stream, print_errors ? 1 : 0)
+  LibRNP::pgp_reader_pop_dearmour(stream) if armored
   results[0]
 end
 

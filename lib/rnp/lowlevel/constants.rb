@@ -1,4 +1,4 @@
-module LibNetPGP
+module LibRNP
   PGP_KEY_ID_SIZE = 8
   PGP_FINGERPRINT_SIZE = 20
   PGP_MAX_KEY_SIZE = 32

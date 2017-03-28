@@ -2,7 +2,7 @@
 require 'optparse'
 require 'io/console'
 
-require_relative '../../lib/netpgp'
+require_relative '../../lib/rnp'
 
 options = {armored: false, keys_armored: false}
 parser = OptionParser.new do |opts|
@@ -30,21 +30,21 @@ seckey_filename = ARGV.shift
 passphrase = ARGV.shift + "\n"
 
 # Load pubkey/keyring
-pubkeyring_mem = LibC::calloc(1, LibNetPGP::PGPKeyring.size)
-pubkeyring = LibNetPGP::PGPKeyring.new(pubkeyring_mem)
-if 1 != LibNetPGP::pgp_keyring_fileread(pubkeyring, options[:keys_armored] ? 1 : 0, pubkey_filename)
+pubkeyring_mem = LibC::calloc(1, LibRNP::PGPKeyring.size)
+pubkeyring = LibRNP::PGPKeyring.new(pubkeyring_mem)
+if 1 != LibRNP::pgp_keyring_fileread(pubkeyring, options[:keys_armored] ? 1 : 0, pubkey_filename)
   puts 'Errors encountered while loading public keyring.'
   exit 1
 end
 # Load seckey/keyring
-seckeyring_mem = LibC::calloc(1, LibNetPGP::PGPKeyring.size)
-seckeyring = LibNetPGP::PGPKeyring.new(seckeyring_mem)
-if 1 != LibNetPGP::pgp_keyring_fileread(seckeyring, options[:keys_armored] ? 1 : 0, seckey_filename)
+seckeyring_mem = LibC::calloc(1, LibRNP::PGPKeyring.size)
+seckeyring = LibRNP::PGPKeyring.new(seckeyring_mem)
+if 1 != LibRNP::pgp_keyring_fileread(seckeyring, options[:keys_armored] ? 1 : 0, seckey_filename)
   puts 'Errors encountered while loading secret keyring.'
   exit 1
 end
 
-pgpio = LibNetPGP::PGPIO.new
+pgpio = LibRNP::PGPIO.new
 stderr_fp = LibC::fdopen($stderr.to_i, 'w')
 # send all to stderr
 pgpio[:outs] = stderr_fp
@@ -64,15 +64,15 @@ $stdin.binmode
 data = $stdin.read
 data_buf = FFI::MemoryPointer.new(:uint8, data.bytesize)
 data_buf.put_bytes(0, data)
-memory_ptr = LibNetPGP::pgp_decrypt_buf(pgpio, data_buf, data_buf.size, seckeyring, pubkeyring, armored, sshkeys, passfp, numtries, nil)
+memory_ptr = LibRNP::pgp_decrypt_buf(pgpio, data_buf, data_buf.size, seckeyring, pubkeyring, armored, sshkeys, passfp, numtries, nil)
 rd.close
 LibC::fclose(passfp)
 
-memory = LibNetPGP::PGPMemory.new(memory_ptr)
+memory = LibRNP::PGPMemory.new(memory_ptr)
 if not memory.null?
   $stdout.binmode
   $stdout.puts memory[:buf].read_bytes(memory[:length])
-  LibNetPGP::pgp_memory_free(memory)
+  LibRNP::pgp_memory_free(memory)
   $stderr.puts 'Success'
 else
   $stderr.puts 'Failed!'
