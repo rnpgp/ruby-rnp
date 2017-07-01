@@ -1,6 +1,6 @@
-# Example usage of NetPGP Ruby binding
+# Example usage of Rnp Ruby binding
 
-module NetPGP
+module Rnp
 
   # https://tools.ietf.org/html/rfc4880#section-4.1
   # An OpenPGP message is constructed from a number of records that are
@@ -83,7 +83,7 @@ module NetPGP
   class Packet; end
   packet.type # RFC 4880 section 5
   packet.version # version 3 or 4
-  packet.subpackets # sub-packets in NetPGP::Packet format
+  packet.subpackets # sub-packets in Rnp::Packet format
   packet.certify(key) # adds a certification signature after the packet
   packet.parent # The parent packet if it is a subpacket
 
@@ -328,12 +328,12 @@ module NetPGP
   # 5.6. Compressed Data Packet (Tag 8)
   class CompressedDataPacket; end
   packet.algorithm # => CompressionAlgorithm
-  packet.data # => a valid decompressed NetPGP::OpenPgpMessage
+  packet.data # => a valid decompressed Rnp::OpenPgpMessage
   packet.to_s # => an armored compressed data packet
 
   # 5.7. Symmetrically Encrypted Data Packet (Tag 9)
   class SymmetricallyEncryptedDataPacket; end
-  packet.data # => [] of valid NetPGP::Packet(s)
+  packet.data # => [] of valid Rnp::Packet(s)
 
   # 5.8. Marker Packet (Obsolete Literal Packet) (Tag 10)
   class MarkerPacket; end
@@ -372,7 +372,7 @@ module NetPGP
   # 5.11. User ID Packet (Tag 13)
   class UserIdPacket; end
   # A RFC 2822 mail-addr.
-  # Same as class NetPGP::Userid
+  # Same as class Rnp::Userid
 
   # 5.12. User Attribute Packet (Tag 17)
   class UserAttributePacket < UserIdPacket; end
@@ -432,13 +432,13 @@ module NetPGP
 end
 
 # READING AN EXISTING SECRET KEY
-key = NetPGP::SecretKey.import(File.read("privatekey.key"))
+key = Rnp::SecretKey.import(File.read("privatekey.key"))
 key.passphrase = "xxx" # => non-interactive method of providing passphrase
 key.to_s # => ASCII armored PGP secret key
-key.public_key # => NetPGP::PublicKey object
+key.public_key # => Rnp::PublicKey object
 
 # GENERATING A NEW KEY
-key = NetPGP::SecretKey.new
+key = Rnp::SecretKey.new
 key.generate(
   key_length: Integer,
   public_key_algorithm: PublicKeyAlgorithm::RSA,
@@ -447,7 +447,7 @@ key.generate(
   hash_algorithm: HashAlgorithm,
   symmetric_key_algorithm: SymmetricKeyAlgorithm
 )
-# => calls NetPGP's
+# => calls Rnp's
 # pgp_rsa_new_selfsign_key(
 #    const int numbits,
 #    const unsigned long e,
@@ -496,7 +496,7 @@ key.key_length # length of key
 #  * 2048-bit key, 256-bit q, SHA-256, SHA-384, or SHA-512 hash
 #  * 3072-bit key, 256-bit q, SHA-256, SHA-384, or SHA-512 hash
 #
-# :elgamal # Unsupported in NetPGP
+# :elgamal # Unsupported in Rnp
 # https://tools.ietf.org/html/rfc4880#section-13.7
 # An implementation SHOULD NOT implement Elgamal keys of size less than 1024
 # bits.
@@ -595,7 +595,7 @@ key.flags # => [] of key flags
 # Public Key Algorithms
 # https://tools.ietf.org/html/rfc4880#section-9.1
 # https://tools.ietf.org/html/rfc6637#section-5
-# NOTE: NetPGP only supports generation of RSA keys (see rsa_generate_keypair()
+# NOTE: Rnp only supports generation of RSA keys (see rsa_generate_keypair()
 # in openssl_crypto.c)
 PublicKeyAlgorithms = [
   PublicKeyAlgorithm::Rsa, # RFC4880, ID 1, RSA Encrypt or Sign [HAC]
@@ -617,7 +617,7 @@ PublicKeyAlgorithms = [
 # Symmetric Key Algorithms
 # https://tools.ietf.org/html/rfc4880#section-9.2
 # https://tools.ietf.org/html/rfc5581#section-3
-# NOTE: NetPGP only supports:
+# NOTE: Rnp only supports:
 #	{	"cast5",		PGP_SA_CAST5		},
 #	{	"idea",			PGP_SA_IDEA		},
 #	{	"aes128",		PGP_SA_AES_128		},
@@ -643,7 +643,7 @@ SymmetricKeyAlgorithms = [
 
 # Hash Algorithms
 # https://tools.ietf.org/html/rfc4880#section-9
-# NOTE: NetPGP only supports
+# NOTE: Rnp only supports
 # case PGP_HASH_MD5:
 # case PGP_HASH_SHA1:
 # case PGP_HASH_SHA256:
@@ -662,7 +662,7 @@ HashAlgorithms = [
 
 # Compression Algorithms
 # https://tools.ietf.org/html/rfc4880#section-9.3
-# NOTE: NetPGP supports all three
+# NOTE: Rnp supports all three
 # case PGP_C_ZIP:
 # case PGP_C_ZLIB:
 # case PGP_C_BZIP2:
@@ -682,29 +682,29 @@ secret_key.verify(message.signature, message.content)
 # A User ID is the 'name-addr' specified in RFC 2822 3.4
 # https://tools.ietf.org/html/rfc2822#section-3.4
 userid = key.userids.first
-# Note: NetPGP pgp_get_userid
-userid = NetPGP::Userid.new(address: "joshuac@mail.net", name: "Josiah Carberry")
+# Note: Rnp pgp_get_userid
+userid = Rnp::Userid.new(address: "joshuac@mail.net", name: "Josiah Carberry")
 userid.address # => address of user id
 userid.name # => name of user id
 userid.to_s # => "Josiah Carberry <joshuac@mail.net>"
 userid.primary_userid # => RFC 4880 5.2.3.19 is this the Primary User ID of a key? Only when userid is associated with key.
 
-key.userids << userid # adds NetPGP::Userid packet to a Message
-# Note: NetPGP pgp_add_userid
+key.userids << userid # adds Rnp::Userid packet to a Message
+# Note: Rnp pgp_add_userid
 
 # SIGNATURE METHODS
-signature = NetPGP::Signature.import("detached_ascii_pgp_signature")
+signature = Rnp::Signature.import("detached_ascii_pgp_signature")
 signature.verify(key, data)
 
 # MESSAGE METHODS
-message = NetPGP::OpenPgpMessage.new
+message = Rnp::OpenPgpMessage.new
 # Importing from ASCII armored PGP message
 message.import_ascii(File.read("ascii_armored_pgp_message.txt"))
 # Importing unarmored content
 message.import_raw(File.read("base64_portion_of_multipart_email.eml"))
-message.packets # => [] of NetPGP::Packet objects
-message.signature # => signature of message in NetPGP::Signature
-message.signer_userid # => signer in NetPGP::Userid
+message.packets # => [] of Rnp::Packet objects
+message.signature # => signature of message in Rnp::Signature
+message.signer_userid # => signer in Rnp::Userid
 message.signed? # => is message signed?
 message.encrypted? # => is message encrypted?
 message.decrypt(key) # => decrypt content of message
@@ -760,7 +760,7 @@ message.content = plaintext_data
 
 
 # ALGORITHM METHODS
-algo = message.public_key_algorithm # => public key algorithm in NetPGP::PublicKeyAlgorithm format
+algo = message.public_key_algorithm # => public key algorithm in Rnp::PublicKeyAlgorithm format
 algo.name # => name of algo, e.g., RSA
 algo.parameters # => parameters of algo used, e.g., RSA parameters (RFC 4880 Algorithm Specific Fields)
 
