@@ -1,0 +1,35 @@
+dist: trusty
+sudo: false
+language: ruby
+
+rvm:
+  - 2.5.0
+  - 2.4.0
+  - 2.3.4
+
+branches:
+  only:
+    - master
+
+env:
+  global:
+    - LOCAL_BUILDS="$HOME/local-builds"
+    - BOTAN_INSTALL="${LOCAL_BUILDS}/botan-install"
+    - CMOCKA_INSTALL="${LOCAL_BUILDS}/cmocka-install"
+    - JSONC_INSTALL="${LOCAL_BUILDS}/jsonc-install"
+    - RNP_INSTALL="${LOCAL_BUILDS}/rnp"
+    - LD_LIBRARY_PATH="${BOTAN_INSTALL}/lib:${CMOCKA_INSTALL}/lib:${JSONC_INSTALL}/lib:${RNP_INSTALL}/lib"
+  matrix:
+    - RNP_VERSION=master
+
+cache:
+  bundler: true
+  directories:
+    - "$BOTAN_INSTALL"
+    - "$CMOCKA_INSTALL"
+    - "$JSONC_INSTALL"
+    - "$RNP_INSTALL"
+
+before_install:
+  - gem install bundler -v 1.14.6
+  - ./ci/install.sh
