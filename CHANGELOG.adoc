@@ -1,0 +1,5 @@
+== Changelog
+
+=== 1.0.0 [05-01-2018]
+* Completely rewritten for RNP's new FFI.
+
