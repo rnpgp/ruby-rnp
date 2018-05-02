@@ -136,6 +136,7 @@ class Rnp
   # @param secret_keys [Boolean] whether to load secret keys
   # @return [void]
   def load_keys(input:, format:, public_keys: true, secret_keys: true)
+    raise ArgumentError, 'At least one of public_keys or secret_keys must be true' if !public_keys && !secret_keys
     flags = load_save_flags(public_keys: public_keys, secret_keys: secret_keys)
     Rnp.call_ffi(:rnp_load_keys, @ptr, format, input.ptr, flags)
   end
@@ -147,7 +148,8 @@ class Rnp
   # @param public_keys [Boolean] whether to load public keys
   # @param secret_keys [Boolean] whether to load secret keys
   # @return [void]
-  def save_keys(output:, format:, public_keys: true, secret_keys: true)
+  def save_keys(output:, format:, public_keys: false, secret_keys: false)
+    raise ArgumentError, 'At least one of public_keys or secret_keys must be true' if !public_keys && !secret_keys
     flags = load_save_flags(public_keys: public_keys, secret_keys: secret_keys)
     Rnp.call_ffi(:rnp_save_keys, @ptr, format, output.ptr, flags)
   end
