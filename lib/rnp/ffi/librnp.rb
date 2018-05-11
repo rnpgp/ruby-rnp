@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# frozen__literal: true
-
 # (c) 2018 Ribose Inc.
 
 require 'ffi'
