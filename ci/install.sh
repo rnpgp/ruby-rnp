@@ -2,7 +2,6 @@
 set -eux
 
 : "${CORES:=2}"
-
 : "${MAKE:=make}"
 
 # botan
@@ -14,35 +13,10 @@ if [ ! -e "${BOTAN_INSTALL}/lib/libbotan-2.so" ] && \
     rm -rf "${botan_build}"
   fi
 
-  git clone https://github.com/randombit/botan "${botan_build}"
+  git clone --depth 1 https://github.com/randombit/botan "${botan_build}"
   pushd "${botan_build}"
   ./configure.py --prefix="${BOTAN_INSTALL}" --with-debug-info --cxxflags="-fno-omit-frame-pointer"
   ${MAKE} -j${CORES} install
-  popd
-fi
-
-# cmocka
-cmocka_build=${LOCAL_BUILDS}/cmocka
-if [ ! -e "${CMOCKA_INSTALL}/lib/libcmocka.so" ] && \
-   [ ! -e "${CMOCKA_INSTALL}/lib/libcmocka.dylib" ]; then
-
-  if [ -d "${cmocka_build}" ]; then
-    rm -rf "${cmocka_build}"
-  fi
-
-  git clone git://git.cryptomilk.org/projects/cmocka.git ${cmocka_build}
-  cd ${cmocka_build}
-  git checkout tags/cmocka-1.1.1
-
-  cd "${LOCAL_BUILDS}"
-  mkdir -p cmocka-build
-  pushd cmocka-build
-  cmake \
-    -DCMAKE_INSTALL_DIR="${CMOCKA_INSTALL}" \
-    -DLIB_INSTALL_DIR="${CMOCKA_INSTALL}/lib" \
-    -DINCLUDE_INSTALL_DIR="${CMOCKA_INSTALL}/include" \
-    "${LOCAL_BUILDS}/cmocka"
-  ${MAKE} -j${CORES} all install
   popd
 fi
 
@@ -74,12 +48,13 @@ if [ ! -e "${RNP_INSTALL}/lib/librnp.so" ] && \
   git clone https://github.com/riboseinc/rnp ${rnp_build}
   pushd "${rnp_build}"
   git checkout "$RNP_VERSION"
-  autoreconf -vfi
-  ./configure \
-    --with-botan="${BOTAN_INSTALL}" \
-    --with-jsonc="${JSONC_INSTALL}" \
-    --with-cmocka="${CMOCKA_INSTALL}" \
-    --prefix="${RNP_INSTALL}"
+  cmake \
+    -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+    -DBUILD_SHARED_LIBS=yes \
+    -DBUILD_TESTING=no \
+    -DCMAKE_PREFIX_PATH="${BOTAN_INSTALL};${JSONC_INSTALL}" \
+    -DCMAKE_INSTALL_PREFIX="${RNP_INSTALL}" \
+    .
   ${MAKE} -j${CORES} install
   popd
 fi
