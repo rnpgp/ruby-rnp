@@ -80,7 +80,7 @@ module LibRnp
                   %i[pointer int pointer],
                   :uint32
   attach_function :rnp_key_add_uid,
-                  %i[pointer string string uint32 uint8 int],
+                  %i[pointer string string uint32 uint8 bool],
                   :uint32
   attach_function :rnp_key_get_fprint,
                   %i[pointer pointer],

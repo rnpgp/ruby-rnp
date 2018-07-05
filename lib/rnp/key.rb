@@ -91,7 +91,7 @@ class Rnp
     # @param primary [Boolean] if true then this userid will be marked as the
     #   primary userid
     # @return [void]
-    def add_userid(userid, hash: nil, expiration_time: nil, key_flags: 0,
+    def add_userid(userid, hash: nil, expiration_time: 0, key_flags: 0,
                    primary: false)
       Rnp.call_ffi(:rnp_key_add_uid, @ptr, userid, hash, expiration_time,
                    key_flags, primary)
