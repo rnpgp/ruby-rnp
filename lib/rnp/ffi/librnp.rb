@@ -47,7 +47,7 @@ module LibRnp
                   %i[string pointer pointer pointer pointer],
                   :uint32
   attach_function :rnp_detect_key_format,
-                  %i[pointer int pointer],
+                  %i[pointer size_t pointer],
                   :uint32
   attach_function :rnp_load_keys,
                   %i[pointer string pointer uint32],
@@ -77,7 +77,7 @@ module LibRnp
                   %i[pointer pointer],
                   :uint32
   attach_function :rnp_key_get_uid_at,
-                  %i[pointer int pointer],
+                  %i[pointer size_t pointer],
                   :uint32
   attach_function :rnp_key_add_uid,
                   %i[pointer string string uint32 uint8 bool],
@@ -176,7 +176,7 @@ module LibRnp
                   %i[pointer pointer],
                   :uint32
   attach_function :rnp_op_verify_get_signature_at,
-                  %i[pointer int pointer],
+                  %i[pointer size_t pointer],
                   :uint32
   attach_function :rnp_op_verify_get_file_info,
                   %i[pointer pointer pointer],
@@ -203,7 +203,7 @@ module LibRnp
                   %i[pointer string],
                   :uint32
   attach_function :rnp_input_from_memory,
-                  %i[pointer pointer int bool],
+                  %i[pointer pointer size_t bool],
                   :uint32
   attach_function :rnp_input_from_callback,
                   %i[pointer rnp_input_reader_t pointer pointer],
@@ -215,7 +215,7 @@ module LibRnp
                   %i[pointer string],
                   :uint32
   attach_function :rnp_output_to_memory,
-                  %i[pointer int],
+                  %i[pointer size_t],
                   :uint32
   attach_function :rnp_output_memory_get_buf,
                   %i[pointer pointer pointer bool],
@@ -248,7 +248,7 @@ module LibRnp
                   %i[pointer uint32],
                   :uint32
   attach_function :rnp_op_encrypt_add_password,
-                  %i[pointer string string int string],
+                  %i[pointer string string size_t string],
                   :uint32
   attach_function :rnp_op_encrypt_set_armor,
                   %i[pointer bool],
