@@ -224,13 +224,13 @@ class Rnp
 
   def public_key_count
     pcount = FFI::MemoryPointer.new(:size_t)
-    Rnp.call_ffi(:rnp_get_public_key_count, pcount)
+    Rnp.call_ffi(:rnp_get_public_key_count, @ptr, pcount)
     pcount.read(:size_t)
   end
 
   def secret_key_count
     pcount = FFI::MemoryPointer.new(:size_t)
-    Rnp.call_ffi(:rnp_get_secret_key_count, pcount)
+    Rnp.call_ffi(:rnp_get_secret_key_count, @ptr, pcount)
     pcount.read(:size_t)
   end
 
