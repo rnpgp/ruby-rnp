@@ -18,6 +18,42 @@ describe Rnp do
     expect(rnp.inspect.length).to be >= 1
   end
 
+  describe Rnp.instance_method(:public_key_count) do
+    let(:rnp) { Rnp.new }
+
+    it 'is 0 before loading any keys' do
+      expect(rnp.public_key_count).to be 0
+    end
+
+    it 'has the expected value after loading keys' do
+      rnp.load_keys(
+        format: 'GPG',
+        input: Rnp::Input.from_path('spec/data/keyrings/gpg/pubring.gpg'),
+        public_keys: true,
+        secret_keys: false
+      )
+      expect(rnp.public_key_count).to be 7
+    end
+  end
+
+  describe Rnp.instance_method(:secret_key_count) do
+    let(:rnp) { Rnp.new }
+
+    it 'is 0 before loading any keys' do
+      expect(rnp.secret_key_count).to be 0
+    end
+
+    it 'has the expected value after loading keys' do
+      rnp.load_keys(
+        format: 'GPG',
+        input: Rnp::Input.from_path('spec/data/keyrings/gpg/secring.gpg'),
+        public_keys: false,
+        secret_keys: true
+      )
+      expect(rnp.secret_key_count).to be 7
+    end
+  end
+
   describe Rnp.instance_method(:find_key) do
     let(:rnp) do
       rnp = Rnp.new
