@@ -1,5 +1,8 @@
 == Changelog
 
+=== 1.0.1 [07-08-2018]
+* Fixed Rnp#public_key_count and Rnp#secret_key_count raising errors.
+
 === 1.0.0 [05-01-2018]
 * Completely rewritten for RNP's new FFI.
 
