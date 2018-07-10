@@ -77,6 +77,14 @@ describe Rnp do
     it 'finds keys by keyid' do
       expect(rnp.find_key(keyid: '8A05B89FAD5ADED1').class).to eql Rnp::Key
     end
+
+    it 'finds keys by fingerprint' do
+      key = rnp.find_key(
+        fingerprint: 'BE1C4AB951F4C2F6B604C7F82FCADF05FFA501BB'
+      )
+      expect(key.class).to eql Rnp::Key
+      expect(key.keyid).to eql '2FCADF05FFA501BB'
+    end
   end
 
   describe Rnp.instance_method(:load_keys) do
