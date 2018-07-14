@@ -44,15 +44,20 @@ describe Rnp::Encrypt do
     enc = rnp.start_encrypt(input: Rnp::Input.from_string(plaintext),
                             output: Rnp::Output.to_null)
     expect(enc.class).to eql Rnp::Encrypt
+    keyreqs = []
     rnp.key_provider = lambda do |idtype, id, secret|
-      expect(idtype).to eql 'keyid'
-      expect(id).to eql '7BC6709B15C23A4A'
+      expect(secret).to be true
+      keyreqs << [idtype, id]
       rnp.load_keys(format: 'GPG',
                     input: Rnp::Input.from_path('spec/data/keyrings/gpg/secring.gpg'))
     end
     user1 = rnp.find_key(userid: 'key0-uid0')
     # doesn't raise error since we loaded the seckey above
     enc.add_signer(user1)
+    expect(keyreqs.size).to eql 1
+    # check that the key that was requested in our provider above matches user1
+    # (via whichever identifier type rnp used in the provider)
+    expect(user1.send(keyreqs[0][0].to_sym)).to eql keyreqs[0][1]
   end
 
   context 'with public-key + symmetric + signing' do
