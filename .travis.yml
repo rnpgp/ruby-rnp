@@ -21,6 +21,7 @@ env:
     - LD_LIBRARY_PATH="${BOTAN_INSTALL}/lib:${CMOCKA_INSTALL}/lib:${JSONC_INSTALL}/lib:${RNP_INSTALL}/lib"
   matrix:
     - RNP_VERSION=master
+    - RNP_VERSION=v0.9.1
 
 cache:
   bundler: true
