@@ -7,7 +7,7 @@ require 'ffi'
 # @api private
 module LibRnp
   extend FFI::Library
-  ffi_lib 'rnp'
+  ffi_lib %w[rnp-0 rnp]
 
   callback        :rnp_get_key_cb,
                   %i[pointer pointer string string bool],
