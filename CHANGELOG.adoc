@@ -1,5 +1,8 @@
 == Changelog
 
+=== 1.0.2 [08-14-2018]
+* Support for newer rnp library naming (librnp-0).
+
 === 1.0.1 [07-08-2018]
 * Fixed Rnp#public_key_count and Rnp#secret_key_count raising errors.
 
