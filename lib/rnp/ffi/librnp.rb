@@ -292,7 +292,10 @@ module LibRnp
   # some newer APIs that may not be present
   {
     # key export
-    rnp_key_export: [%i[pointer pointer uint32], :uint32]
+    rnp_key_export: [%i[pointer pointer uint32], :uint32],
+    # enarmor/dearmor
+    rnp_enarmor: [%i[pointer pointer pointer], :uint32],
+    rnp_dearmor: [%i[pointer pointer], :uint32]
   }.each do |name, signature|
     present = ffi_libraries[0].find_function(name.to_s)
     if !present

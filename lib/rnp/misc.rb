@@ -67,5 +67,30 @@ class Rnp
       LibRnp.rnp_buffer_destroy(pformat)
     end
   end
+
+  # Add ASCII Armor to data.
+  #
+  # @param input [Input] the input to read data from
+  # @param output [Output] the output to write the armored
+  #   data to. If nil, the result will be returned directly
+  #   as a String.
+  # @return [nil, String]
+  def self.enarmor(input:, output: nil, type: nil)
+    Output.default(output) do |output_|
+      Rnp.call_ffi(:rnp_enarmor, input.ptr, output_.ptr, type)
+    end
+  end
+
+  # Remove ASCII Armor from data.
+  #
+  # @param input [Input] the input to read the ASCII-Armored data from
+  # @param output [Output] the output to write the dearmored data to. If
+  #   nil, the result will be returned directly as a String.
+  # @return [nil, String]
+  def self.dearmor(input:, output: nil)
+    Output.default(output) do |output_|
+      Rnp.call_ffi(:rnp_dearmor, input.ptr, output_.ptr)
+    end
+  end
 end # class
 
