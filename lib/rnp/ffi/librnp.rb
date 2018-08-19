@@ -286,7 +286,15 @@ module LibRnp
   attach_function :rnp_identifier_iterator_destroy,
                   %i[pointer],
                   :uint32
+  attach_function :rnp_key_export,
+                  %i[pointer pointer uint32],
+                  :uint32
 
+
+  RNP_KEY_EXPORT_ARMORED = (1 << 0)
+  RNP_KEY_EXPORT_PUBLIC =  (1 << 1)
+  RNP_KEY_EXPORT_SECRET =  (1 << 2)
+  RNP_KEY_EXPORT_SUBKEYS = (1 << 3)
 
   RNP_LOAD_SAVE_PUBLIC_KEYS = (1 << 0)
   RNP_LOAD_SAVE_SECRET_KEYS = (1 << 1)

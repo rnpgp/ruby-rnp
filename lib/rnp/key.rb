@@ -182,6 +182,48 @@ class Rnp
       bool_property(:rnp_key_have_secret)
     end
 
+    # Export a public key.
+    #
+    # By default, when exporting a primary key, only the primary key
+    # will be exported. When exporting a subkey, the primary key and
+    # subkey will both be exported.
+    #
+    # @param output [Output] the output to write the exported key.
+    #   If nil, the result will be returned directly as a String.
+    # @param armored (see Sign#armored=)
+    # @param with_subkeys [Boolean] when exporting a primary key,
+    #   this controls whether all subkeys should also be exported.
+    #   When true, the primary key and all subkeys will be exported.
+    #   When false, only the primary key will be exported.
+    #   This parameter is not valid when the key is a subkey.
+    # @return [nil, String]
+    def export_public(armored: true, with_subkeys: false, output: nil)
+      Output.default(output) do |output_|
+        export(public_key: true, with_subkeys: with_subkeys, armored: armored, output: output_)
+      end
+    end
+
+    # Export a secret key.
+    #
+    # By default, when exporting a primary key, only the primary key
+    # will be exported. When exporting a subkey, the primary key and
+    # subkey will both be exported.
+    #
+    # @param output [Output] the output to write the exported key.
+    #   If nil, the result will be returned directly as a String.
+    # @param armored (see Sign#armored=)
+    # @param with_subkeys [Boolean] when exporting a primary key,
+    #   this controls whether all subkeys should also be exported.
+    #   When true, the primary key and all subkeys will be exported.
+    #   When false, only the primary key will be exported.
+    #   This parameter is not valid when the key is a subkey.
+    # @return [nil, String]
+    def export_secret(armored: true, with_subkeys: false, output: nil)
+      Output.default(output) do |output_|
+        export(secret_key: true, with_subkeys: with_subkeys, armored: armored, output: output_)
+      end
+    end
+
     # Returns the raw public key data as PGP packets.
     #
     # @return [String]
@@ -269,6 +311,15 @@ class Rnp
           LibRnp.rnp_buffer_destroy(puserid)
         end
       end
+    end
+
+    def export(public_key: false, secret_key: false, with_subkeys: false, armored: true, output: nil)
+      flags = 0
+      flags |= LibRnp::RNP_KEY_EXPORT_ARMORED if armored
+      flags |= LibRnp::RNP_KEY_EXPORT_PUBLIC if public_key
+      flags |= LibRnp::RNP_KEY_EXPORT_SECRET if secret_key
+      flags |= LibRnp::RNP_KEY_EXPORT_SUBKEYS if with_subkeys
+      Rnp.call_ffi(:rnp_key_export, @ptr, output.ptr, flags)
     end
   end # class
 end # class
