@@ -4,6 +4,8 @@
 
 require 'ffi'
 
+require 'rnp/error'
+
 # @api private
 module LibRnp
   extend FFI::Library
@@ -287,6 +289,30 @@ module LibRnp
                   %i[pointer],
                   :uint32
 
+  # some newer APIs that may not be present
+  {
+    # key export
+    rnp_key_export: [%i[pointer pointer uint32], :uint32]
+  }.each do |name, signature|
+    present = ffi_libraries[0].find_function(name.to_s)
+    if !present
+      class_eval do
+        define_singleton_method(name) do |*|
+          raise Rnp::FeatureNotAvailableError, name
+        end
+      end
+    else
+      attach_function name, signature[0], signature[1]
+    end
+    class_eval do
+      const_set("HAVE_#{name.upcase}", present)
+    end
+  end
+
+  RNP_KEY_EXPORT_ARMORED = (1 << 0)
+  RNP_KEY_EXPORT_PUBLIC =  (1 << 1)
+  RNP_KEY_EXPORT_SECRET =  (1 << 2)
+  RNP_KEY_EXPORT_SUBKEYS = (1 << 3)
 
   RNP_LOAD_SAVE_PUBLIC_KEYS = (1 << 0)
   RNP_LOAD_SAVE_SECRET_KEYS = (1 << 1)

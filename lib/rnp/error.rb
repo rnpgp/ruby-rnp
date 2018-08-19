@@ -18,6 +18,12 @@ class Rnp
     end
   end
 
+  class FeatureNotAvailableError < Error
+    def initialize(feature)
+      super("#{feature} is not available in your version of rnp.")
+    end
+  end
+
   class BadPasswordError < Error; end
   class InvalidSignatureError < Error; end
   class BadFormatError < Error; end
