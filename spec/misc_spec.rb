@@ -87,3 +87,51 @@ describe 'enarmor and dearmor', skip: !LibRnp::HAVE_RNP_ENARMOR do
     expect(dearmored).to eql File.binread('spec/data/keyrings/gpg/secring.gpg')
   end
 end
+
+describe 'versioning', skip: !LibRnp::HAVE_RNP_VERSION do
+  describe Rnp.method(:version_string) do
+    it 'returns a string' do
+      expect(Rnp.version_string.class).to be String
+    end
+  end
+
+  describe Rnp.method(:version_string_full) do
+    it 'returns a string' do
+      expect(Rnp.version_string_full.class).to be String
+    end
+  end
+
+  describe Rnp.method(:version) do
+    it 'returns a number' do
+      expect(Rnp.version).to be_kind_of(Integer)
+    end
+  end
+
+  describe Rnp.method(:version_for) do
+    it 'round-trips' do
+      VERSION = Rnp.version
+      MAJOR = Rnp.version_major(VERSION)
+      MINOR = Rnp.version_minor(VERSION)
+      PATCH = Rnp.version_patch(VERSION)
+      expect(Rnp.version_for(MAJOR, MINOR, PATCH)).to be VERSION
+    end
+  end
+
+  describe Rnp.method(:version_major) do
+    it 'returns a number' do
+      expect(Rnp.version_major(Rnp.version)).to be_kind_of(Integer)
+    end
+  end
+
+  describe Rnp.method(:version_minor) do
+    it 'returns a number' do
+      expect(Rnp.version_minor(Rnp.version)).to be_kind_of(Integer)
+    end
+  end
+
+  describe Rnp.method(:version_patch) do
+    it 'returns a number' do
+      expect(Rnp.version_patch(Rnp.version)).to be_kind_of(Integer)
+    end
+  end
+end

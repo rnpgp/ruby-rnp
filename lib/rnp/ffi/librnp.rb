@@ -295,7 +295,15 @@ module LibRnp
     rnp_key_export: [%i[pointer pointer uint32], :uint32],
     # enarmor/dearmor
     rnp_enarmor: [%i[pointer pointer pointer], :uint32],
-    rnp_dearmor: [%i[pointer pointer], :uint32]
+    rnp_dearmor: [%i[pointer pointer], :uint32],
+    # versioning
+    rnp_version_string: [%i[], :string],
+    rnp_version_string_full: [%i[], :string],
+    rnp_version: [%i[], :uint32],
+    rnp_version_for: [%i[uint32 uint32 uint32], :uint32],
+    rnp_version_major: [%i[uint32], :uint32],
+    rnp_version_minor: [%i[uint32], :uint32],
+    rnp_version_patch: [%i[uint32], :uint32]
   }.each do |name, signature|
     present = ffi_libraries[0].find_function(name.to_s)
     if !present
