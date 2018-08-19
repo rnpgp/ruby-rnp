@@ -61,3 +61,30 @@ describe Rnp.method(:key_format) do
   end
 end
 
+describe 'enarmor and dearmor' do
+  it 'round-trips a plain message' do
+    MESSAGE = 'my test message'.freeze
+    armored = Rnp.enarmor(input: Rnp::Input.from_string(MESSAGE), type: 'message')
+    expect(armored.start_with?("-----BEGIN PGP MESSAGE-----\r\n")).to be true
+    expect(armored.end_with?("-----END PGP MESSAGE-----\r\n")).to be true
+    dearmored = Rnp.dearmor(input: Rnp::Input.from_string(armored))
+    expect(dearmored).to eql MESSAGE
+  end
+
+  it 'round-trips a keyring (public)' do
+    armored = Rnp.enarmor(input: Rnp::Input.from_path('spec/data/keyrings/gpg/pubring.gpg'))
+    expect(armored.start_with?("-----BEGIN PGP PUBLIC KEY BLOCK-----\r\n")).to be true
+    expect(armored.end_with?("-----END PGP PUBLIC KEY BLOCK-----\r\n")).to be true
+    dearmored = Rnp.dearmor(input: Rnp::Input.from_string(armored))
+    expect(dearmored).to eql File.binread('spec/data/keyrings/gpg/pubring.gpg')
+  end
+
+  it 'round-trips a keyring (secret)' do
+    armored = Rnp.enarmor(input: Rnp::Input.from_path('spec/data/keyrings/gpg/secring.gpg'))
+    expect(armored.start_with?("-----BEGIN PGP PRIVATE KEY BLOCK-----\r\n")).to be true
+    expect(armored.end_with?("-----END PGP PRIVATE KEY BLOCK-----\r\n")).to be true
+    dearmored = Rnp.dearmor(input: Rnp::Input.from_string(armored))
+    expect(dearmored).to eql File.binread('spec/data/keyrings/gpg/secring.gpg')
+  end
+end
+

@@ -289,6 +289,12 @@ module LibRnp
   attach_function :rnp_key_export,
                   %i[pointer pointer uint32],
                   :uint32
+  attach_function :rnp_enarmor,
+                  %i[pointer pointer pointer],
+                  :uint32
+  attach_function :rnp_dearmor,
+                  %i[pointer pointer],
+                  :uint32
 
 
   RNP_KEY_EXPORT_ARMORED = (1 << 0)
