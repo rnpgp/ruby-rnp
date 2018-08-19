@@ -92,5 +92,57 @@ class Rnp
       Rnp.call_ffi(:rnp_dearmor, input.ptr, output_.ptr)
     end
   end
+
+  # Get the version of the rnp library as a string.
+  #
+  # @return [String]
+  def self.version_string
+    LibRnp.rnp_version_string
+  end
+
+  # Get the detailed version of the rnp library as a string.
+  #
+  # @return [String]
+  def self.version_string_full
+    LibRnp.rnp_version_string_full
+  end
+
+  # Get the version stamp of the rnp library as an unsigned
+  # 32-bit integer. This number can be compared against other
+  # stamps generated with {version_for}.
+  #
+  # @return [Integer]
+  def self.version
+    LibRnp.rnp_version
+  end
+
+  # Encode the given major, minor, and patch numbers into a version
+  # stamp.
+  #
+  # @return [Integer]
+  def self.version_for(major, minor, patch)
+    LibRnp.rnp_version_for(major, minor, patch)
+  end
+
+  # Extract the major version component from the given version stamp.
+  #
+  # @return [Integer]
+  def self.version_major(version)
+    LibRnp.rnp_version_major(version)
+  end
+
+  # Extract the minor version component from the given version stamp.
+  #
+  # @return [Integer]
+  def self.version_minor(version)
+    LibRnp.rnp_version_minor(version)
+  end
+
+  # Extract the patch version component from the given version stamp.
+  #
+  # @return [Integer]
+  def self.version_patch(version)
+    LibRnp.rnp_version_patch(version)
+  end
 end # class
 

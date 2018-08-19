@@ -295,6 +295,27 @@ module LibRnp
   attach_function :rnp_dearmor,
                   %i[pointer pointer],
                   :uint32
+  attach_function :rnp_version_string,
+                  %i[],
+                  :string
+  attach_function :rnp_version_string_full,
+                  %i[],
+                  :string
+  attach_function :rnp_version,
+                  %i[],
+                  :uint32
+  attach_function :rnp_version_for,
+                  %i[uint32 uint32 uint32],
+                  :uint32
+  attach_function :rnp_version_major,
+                  %i[uint32],
+                  :uint32
+  attach_function :rnp_version_minor,
+                  %i[uint32],
+                  :uint32
+  attach_function :rnp_version_patch,
+                  %i[uint32],
+                  :uint32
 
 
   RNP_KEY_EXPORT_ARMORED = (1 << 0)
