@@ -252,7 +252,7 @@ class Rnp
            creation_time: nil,
            expiration_time: nil,
            hash: nil)
-    default_output(output) do |output_|
+    Output.default(output) do |output_|
       sign = start_sign(input: input, output: output_)
       sign.options = {
         armored: armored,
@@ -280,7 +280,7 @@ class Rnp
                      creation_time: nil,
                      expiration_time: nil,
                      hash: nil)
-    default_output(output) do |output_|
+    Output.default(output) do |output_|
       sign = start_cleartext_sign(input: input, output: output_)
       sign.options = {
         compression: compression,
@@ -309,7 +309,7 @@ class Rnp
                     creation_time: nil,
                     expiration_time: nil,
                     hash: nil)
-    default_output(output) do |output_|
+    Output.default(output) do |output_|
       sign = start_detached_sign(input: input, output: output_)
       sign.options = {
         armored: armored,
@@ -353,7 +353,7 @@ class Rnp
               armored: nil,
               compression: nil,
               cipher: nil)
-    default_output(output) do |output_|
+    Output.default(output) do |output_|
       enc = start_encrypt(input: input, output: output_)
       enc.options = {
         armored: armored,
@@ -383,7 +383,7 @@ class Rnp
                        hash: nil,
                        creation_time: nil,
                        expiration_time: nil)
-    default_output(output) do |output_|
+    Output.default(output) do |output_|
       enc = start_encrypt(input: input, output: output_)
       enc.options = {
         armored: armored,
@@ -417,7 +417,7 @@ class Rnp
                         s2k_hash: nil,
                         s2k_iterations: 0,
                         s2k_cipher: nil)
-    default_output(output) do |output_|
+    Output.default(output) do |output_|
       enc = start_encrypt(input: input, output: output_)
       enc.options = {
         armored: armored,
@@ -442,7 +442,7 @@ class Rnp
   #   If nil, the result will be returned directly as a String.
   # @return [nil, String]
   def decrypt(input:, output: nil)
-    default_output(output) do |output_|
+    Output.default(output) do |output_|
       Rnp.call_ffi(:rnp_decrypt, @ptr, input.ptr, output_.ptr)
     end
   end
@@ -583,13 +583,6 @@ class Rnp
     flags |= LibRnp::RNP_LOAD_SAVE_PUBLIC_KEYS if public_keys
     flags |= LibRnp::RNP_LOAD_SAVE_SECRET_KEYS if secret_keys
     flags
-  end
-
-  def default_output(output)
-    to_str = output.nil?
-    output = Output.to_string if to_str
-    yield output
-    output.string if to_str
   end
 end # class
 
