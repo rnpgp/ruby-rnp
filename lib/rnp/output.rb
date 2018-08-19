@@ -116,6 +116,14 @@ class Rnp
       Rnp.call_ffi(:rnp_output_to_callback, pptr, writercb, nil, nil)
       Output.new(pptr.read_pointer, writercb)
     end
+
+    # @api private
+    def self.default(output)
+      to_str = output.nil?
+      output = Output.to_string if to_str
+      yield output
+      output.string if to_str
+    end
   end # class
 end # class
 
