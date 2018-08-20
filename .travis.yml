@@ -17,7 +17,7 @@ env:
     - BOTAN_INSTALL="${LOCAL_BUILDS}/botan-install"
     - CMOCKA_INSTALL="${LOCAL_BUILDS}/cmocka-install"
     - JSONC_INSTALL="${LOCAL_BUILDS}/jsonc-install"
-    - RNP_INSTALL="${LOCAL_BUILDS}/rnp"
+    - RNP_INSTALL="${LOCAL_BUILDS}/rnp-install"
     - LD_LIBRARY_PATH="${BOTAN_INSTALL}/lib:${CMOCKA_INSTALL}/lib:${JSONC_INSTALL}/lib:${RNP_INSTALL}/lib"
   matrix:
     - RNP_VERSION=master
