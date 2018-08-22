@@ -6,6 +6,8 @@ image:https://codecov.io/github/riboseinc/ruby-rnp/coverage.svg["Code Coverage",
 The `rnp` gem provides Ruby bindings to the
 https://github.com/riboseinc/rnp[librnp OpenPGP library].
 
+Documentation is available on https://www.rubydoc.info/github/riboseinc/ruby-rnp/[RubyDoc].
+
 == Installation
 
 Add this line to your application's Gemfile:
