@@ -93,7 +93,7 @@ describe Rnp do
       rnp.load_keys(format: 'GPG',
                     input: Rnp::Input.from_path('spec/data/keyrings/gpg/secring.gpg'),
                     public_keys: true, secret_keys: false)
-      expect(rnp.keyids.size).to be 0
+      expect(rnp.keyids.size).to be 7
     end
 
     it 'loads only secret keys when specified' do
@@ -172,7 +172,7 @@ describe Rnp do
       expect(rnp.keyids.size).to eql 7
       rnp.keyids.each do |keyid|
         key = rnp.find_key(keyid: keyid)
-        expect(key.public_key_present?).to be false
+        expect(key.public_key_present?).to be true
         expect(key.secret_key_present?).to be true
       end
     end
