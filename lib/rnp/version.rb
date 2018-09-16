@@ -3,6 +3,6 @@
 # (c) 2018 Ribose Inc.
 
 class Rnp
-  VERSION = '1.0.2'
+  VERSION = '1.0.3'
 end # class
 

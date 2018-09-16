@@ -1,5 +1,10 @@
 == Changelog
 
+=== 1.0.3 [08-21-2018]
+* Added support for key exporting.
+* Added support for enarmoring/dearmoring arbitrary data.
+* Added support to retreive the rnp version.
+
 === 1.0.2 [08-14-2018]
 * Support for newer rnp library naming (librnp-0).
 
