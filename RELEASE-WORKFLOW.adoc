@@ -1,0 +1,12 @@
+= Creating a Release
+
+```
+vim CHANGELOG.adoc
+vim lib/rnp/version.rb
+git add CHANGELOG.adoc lib/rnp/version.rb
+git commit -m 'Release 1.0.1'
+git tag v1.0.1
+gem build rnp
+gem push rnp-1.0.1.gem
+```
+
