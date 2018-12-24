@@ -129,10 +129,12 @@ class Rnp
     # @api private
     def self.set_signature_options(psig, hash:, creation_time:,
                                    expiration_time:)
-      Rnp.call_ffi(:rnp_op_sign_signature_set_hash, psig, value) unless hash.nil?
+      Rnp.call_ffi(:rnp_op_sign_signature_set_hash, psig, hash) unless hash.nil?
       creation_time = creation_time.to_i if creation_time.is_a?(::Time)
-      Rnp.call_ffi(:rnp_op_sign_signature_set_creation_time, psig, value) unless creation_time.nil?
-      Rnp.call_ffi(:rnp_op_sign_signature_set_expiration_time, psig, value) unless expiration_time.nil?
+      Rnp.call_ffi(:rnp_op_sign_signature_set_creation_time, psig,
+                   creation_time) unless creation_time.nil?
+      Rnp.call_ffi(:rnp_op_sign_signature_set_expiration_time, psig,
+                   expiration_time) unless expiration_time.nil?
     end
   end # class
 end # class
