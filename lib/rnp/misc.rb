@@ -112,8 +112,12 @@ class Rnp
   # stamps generated with {version_for}.
   #
   # @return [Integer]
-  def self.version
-    LibRnp.rnp_version
+  def self.version(str = nil)
+    if str.nil?
+      LibRnp.rnp_version
+    else
+      LibRnp.rnp_version_for(*str.split('.').map(&:to_i))
+    end
   end
 
   # Encode the given major, minor, and patch numbers into a version
