@@ -320,6 +320,14 @@ module LibRnp
     end
   end
 
+  if ffi_libraries[0].find_function('rnp_version_commit_timestamp')
+    attach_function :rnp_version_commit_timestamp, [], :uint64
+  else
+    def self.rnp_version_commit_timestamp
+      0
+    end
+  end
+
   RNP_KEY_EXPORT_ARMORED = (1 << 0)
   RNP_KEY_EXPORT_PUBLIC =  (1 << 1)
   RNP_KEY_EXPORT_SECRET =  (1 << 2)

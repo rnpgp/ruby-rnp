@@ -144,5 +144,14 @@ class Rnp
   def self.version_patch(version)
     LibRnp.rnp_version_patch(version)
   end
+
+  # Retrieve the commit time of the latest commit.
+  #
+  # This will return 0 for release/non-master builds.
+  #
+  # @return [Integer]
+  def self.commit_time
+    LibRnp.rnp_version_commit_timestamp
+  end
 end # class
 
