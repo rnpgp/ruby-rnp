@@ -157,5 +157,16 @@ class Rnp
   def self.commit_time
     LibRnp.rnp_version_commit_timestamp
   end
+
+  FEATURES = {
+    # Support for setting hash, creation, and expiration time for individual
+    # signatures in a sign operation.
+    'per-signature-opts' => Rnp.version > Rnp.version('0.11.0') || Rnp.commit_time >= 1546035818
+  }.freeze
+
+  def self.has?(feature)
+    raise ArgumentError unless FEATURES.include?(feature)
+    FEATURES[feature]
+  end
 end # class
 
