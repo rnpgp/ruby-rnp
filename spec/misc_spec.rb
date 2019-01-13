@@ -105,6 +105,14 @@ describe 'versioning', skip: !LibRnp::HAVE_RNP_VERSION do
     it 'returns a number' do
       expect(Rnp.version).to be_kind_of(Integer)
     end
+
+    it 'returns the expected value when taking a string version' do
+      expect(Rnp.version('1.23.4')).to be ((1 << 20) | (23 << 10) | (4 << 0))
+    end
+
+    it 'returns values equivalent to version_for' do
+      expect(Rnp.version('2.35.6')).to be Rnp.version_for(2, 35, 6)
+    end
   end
 
   describe Rnp.method(:version_for) do
