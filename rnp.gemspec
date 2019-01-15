@@ -21,7 +21,6 @@ Gem::Specification.new do |spec|
 
   spec.required_ruby_version = '>= 2.3.0'
 
-  spec.has_rdoc = 'yard'
   spec.metadata['yard.run'] = 'yard'
 
   spec.add_development_dependency 'asciidoctor', '~> 1.5'
