@@ -1,9 +1,6 @@
 ---
 items:
-- title: Introduction
-  items:
-    - { title: Overview, path: overview/ }
-    - { title: Installation, path: installation/ }
+  - { title: Quick start, path: quickstart/ }
 ---
 
 = Navigation
