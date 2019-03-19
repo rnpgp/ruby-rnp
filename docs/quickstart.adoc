@@ -4,7 +4,7 @@ image:https://img.shields.io/travis/riboseinc/ruby-rnp/master.svg["Build Status"
 image:https://codecov.io/github/riboseinc/ruby-rnp/coverage.svg["Code Coverage", link="https://codecov.io/github/riboseinc/ruby-rnp?branch=master"]
 
 The `rnp` gem provides Ruby bindings to the
-https://www.rnpgp.com/software/rnp/[RNP OpenPGP library].
+https://www.rnpgp.com/software/rnp/[RNP OpenPGP library] and requires RNP 0.10.0 or newer.
 
 == Installation
 
