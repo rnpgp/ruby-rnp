@@ -31,6 +31,56 @@ describe Rnp::Key do
       expect(key.primary_userid).to eql 'key0-uid0'
     end
 
+    describe Rnp::Key.instance_method(:each_subkey),
+             skip: !LibRnp::HAVE_RNP_KEY_GET_SUBKEY_AT do
+      it "correctly iterates" do
+        enumerator = key.each_subkey
+        expect(enumerator.class).to be Enumerator
+        keys = enumerator.to_a
+        expect(keys.size).to be 3
+        expect(
+          (keys.select { |k| k.keyid == "1ED63EE56FADC34D" }).size
+        ).to be 1
+        expect(
+          (keys.select { |k| k.keyid == "1D7E8A5393C997A8" }).size
+        ).to be 1
+        expect(
+          (keys.select { |k| k.keyid == "8A05B89FAD5ADED1" }).size
+        ).to be 1
+      end
+
+      it "correctly iterates w/block" do
+        keys = []
+        key.each_subkey { |k| keys << k }
+        expect(keys.size).to be 3
+        expect(
+          (keys.select { |k| k.keyid == "1ED63EE56FADC34D" }).size
+        ).to be 1
+        expect(
+          (keys.select { |k| k.keyid == "1D7E8A5393C997A8" }).size
+        ).to be 1
+        expect(
+          (keys.select { |k| k.keyid == "8A05B89FAD5ADED1" }).size
+        ).to be 1
+      end
+    end
+
+    describe Rnp::Key.instance_method(:subkeys),
+             skip: !LibRnp::HAVE_RNP_KEY_GET_SUBKEY_AT do
+      it "has the correct subkeys" do
+        keys = key.subkeys
+        expect(
+          (keys.select { |k| k.keyid == "1ED63EE56FADC34D" }).size
+        ).to be 1
+        expect(
+          (keys.select { |k| k.keyid == "1D7E8A5393C997A8" }).size
+        ).to be 1
+        expect(
+          (keys.select { |k| k.keyid == "8A05B89FAD5ADED1" }).size
+        ).to be 1
+      end
+    end
+
     describe Rnp::Key.instance_method(:each_userid) do
       it 'correctly iterates userids' do
         enumerator = key.each_userid
