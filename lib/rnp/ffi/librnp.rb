@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# (c) 2018 Ribose Inc.
+# (c) 2018,2019 Ribose Inc.
 
 require 'ffi'
 
@@ -303,7 +303,9 @@ module LibRnp
     rnp_version_for: [%i[uint32 uint32 uint32], :uint32],
     rnp_version_major: [%i[uint32], :uint32],
     rnp_version_minor: [%i[uint32], :uint32],
-    rnp_version_patch: [%i[uint32], :uint32]
+    rnp_version_patch: [%i[uint32], :uint32],
+    # unload keys
+    rnp_unload_keys: [%i[pointer uint32], :uint32]
   }.each do |name, signature|
     present = !ffi_libraries[0].find_function(name.to_s).nil?
     if !present
@@ -335,6 +337,9 @@ module LibRnp
 
   RNP_LOAD_SAVE_PUBLIC_KEYS = (1 << 0)
   RNP_LOAD_SAVE_SECRET_KEYS = (1 << 1)
+
+  RNP_KEY_UNLOAD_PUBLIC = (1 << 0)
+  RNP_KEY_UNLOAD_SECRET = (1 << 1)
 
   RNP_JSON_PUBLIC_MPIS = (1 << 0)
   RNP_JSON_SECRET_MPIS = (1 << 1)

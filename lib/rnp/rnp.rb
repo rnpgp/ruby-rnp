@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# (c) 2018 Ribose Inc.
+# (c) 2018,2019 Ribose Inc.
 
 require 'English'
 require 'json'
@@ -139,6 +139,12 @@ class Rnp
     raise ArgumentError, 'At least one of public_keys or secret_keys must be true' if !public_keys && !secret_keys
     flags = load_save_flags(public_keys: public_keys, secret_keys: secret_keys)
     Rnp.call_ffi(:rnp_load_keys, @ptr, format, input.ptr, flags)
+  end
+
+  def unload_keys(public_keys: true, secret_keys: true)
+    raise ArgumentError, 'At least one of public_keys or secret_keys must be true' if !public_keys && !secret_keys
+    flags = unload_keys_flags(public_keys: public_keys, secret_keys: secret_keys)
+    Rnp.call_ffi(:rnp_unload_keys, @ptr, flags)
   end
 
   # Save keys.
@@ -582,6 +588,13 @@ class Rnp
     flags = 0
     flags |= LibRnp::RNP_LOAD_SAVE_PUBLIC_KEYS if public_keys
     flags |= LibRnp::RNP_LOAD_SAVE_SECRET_KEYS if secret_keys
+    flags
+  end
+
+  def unload_keys_flags(public_keys:, secret_keys:)
+    flags = 0
+    flags |= LibRnp::RNP_KEY_UNLOAD_PUBLIC if public_keys
+    flags |= LibRnp::RNP_KEY_UNLOAD_SECRET if secret_keys
     flags
   end
 end # class
