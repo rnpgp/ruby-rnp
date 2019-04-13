@@ -298,6 +298,13 @@ class Rnp
       each_subkey.to_a
     end
 
+    # Get the type of this key (RSA, etc).
+    #
+    # @return [String]
+    def type
+      string_property(:rnp_key_get_alg)
+    end
+
     private
 
     def string_property(func)

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# (c) 2018 Ribose Inc.
+# (c) 2018,2019 Ribose Inc.
 
 require 'json'
 
@@ -14,6 +14,11 @@ describe Rnp::Key do
                     input: Rnp::Input.from_path('spec/data/keyrings/gpg/pubring.gpg'))
     end
     let(:key) { @rnp.find_key(keyid: '7BC6709B15C23A4A') }
+
+    it "has the correct type",
+       skip: !LibRnp::HAVE_RNP_KEY_GET_ALG do
+      expect(key.type). to eql "RSA"
+    end
 
     it 'has the correct fingerprint' do
       expect(key.fingerprint).to eql 'E95A3CBF583AA80A2CCC53AA7BC6709B15C23A4A'
