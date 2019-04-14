@@ -314,6 +314,15 @@ class Rnp
       pbits.read(:uint32)
     end
 
+    # Get the bit length for the q parameter of this DSA key.
+    #
+    # @return [Integer]
+    def qbits
+      pbits = FFI::MemoryPointer.new(:uint32)
+      Rnp.call_ffi(:rnp_key_get_dsa_qbits, @ptr, pbits)
+      pbits.read(:uint32)
+    end
+
     private
 
     def string_property(func)
