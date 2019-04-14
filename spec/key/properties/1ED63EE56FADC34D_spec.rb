@@ -20,6 +20,16 @@ describe Rnp::Key do
       expect(key.type).to eql "RSA"
     end
 
+    it "can not be used to sign",
+       skip: !LibRnp::HAVE_RNP_KEY_ALLOWS_USAGE do
+      expect(key.can?(:sign)).to be false
+    end
+
+    it "can be used to encrypt",
+       skip: !LibRnp::HAVE_RNP_KEY_ALLOWS_USAGE do
+      expect(key.can?(:encrypt)).to be true
+    end
+
     it 'has the correct fingerprint' do
       expect(key.fingerprint).to eql 'E332B27CAF4742A11BAA677F1ED63EE56FADC34D'
     end

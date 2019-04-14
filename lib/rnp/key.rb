@@ -330,6 +330,16 @@ class Rnp
       string_property(:rnp_key_get_curve)
     end
 
+    # Query whether this key can be used to perform a certain operation.
+    #
+    # @param op [String,Symbol] the operation to query (sign, etc)
+    # @return [Boolean]
+    def can?(op)
+      pvalue = FFI::MemoryPointer.new(:bool)
+      Rnp.call_ffi(:rnp_key_allows_usage, @ptr, op.to_s, pvalue)
+      pvalue.read(:bool)
+    end
+
     private
 
     def string_property(func)
