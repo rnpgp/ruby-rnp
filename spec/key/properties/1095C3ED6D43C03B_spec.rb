@@ -28,6 +28,16 @@ dbpkwTCmBVbAmazgea0B
       expect(key.type).to eql "EDDSA"
     end
 
+    it "can be used to sign",
+       skip: !LibRnp::HAVE_RNP_KEY_ALLOWS_USAGE do
+      expect(key.can?(:sign)).to be true
+    end
+
+    it "can not be used to encrypt",
+       skip: !LibRnp::HAVE_RNP_KEY_ALLOWS_USAGE do
+      expect(key.can?(:encrypt)).to be false
+    end
+
     it "has the correct curve",
        skip: !LibRnp::HAVE_RNP_KEY_GET_CURVE do
       expect(key.curve).to eql "Ed25519"
