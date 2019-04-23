@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# (c) 2018 Ribose Inc.
+# (c) 2018,2019 Ribose Inc.
 
 require 'set'
 
@@ -127,6 +127,50 @@ describe Rnp do
       end
     end
   end # load_keys
+
+  describe Rnp.instance_method(:unload_keys),
+           skip: !LibRnp::HAVE_RNP_UNLOAD_KEYS do
+    let(:rnp) do
+      rnp = Rnp.new
+      rnp.load_keys(
+        format: "GPG",
+        input: Rnp::Input.from_path("spec/data/keyrings/gpg/secring.gpg"),
+        public_keys: true, secret_keys: true
+      )
+      expect(rnp.keyids.size).to be 7
+      rnp.keyids.each do |keyid|
+        key = rnp.find_key(keyid: keyid)
+        expect(key.public_key_present?).to be true
+        expect(key.secret_key_present?).to be true
+      end
+      rnp
+    end
+
+    it "unloads only public keys when specified" do
+      rnp.unload_keys(public_keys: true, secret_keys: false)
+      expect(rnp.keyids.size).to be 7
+      rnp.keyids.each do |keyid|
+        key = rnp.find_key(keyid: keyid)
+        expect(key.public_key_present?).to be false
+        expect(key.secret_key_present?).to be true
+      end
+    end
+
+    it "unloads only secret keys when specified" do
+      rnp.unload_keys(public_keys: false, secret_keys: true)
+      expect(rnp.keyids.size).to be 7
+      rnp.keyids.each do |keyid|
+        key = rnp.find_key(keyid: keyid)
+        expect(key.public_key_present?).to be true
+        expect(key.secret_key_present?).to be false
+      end
+    end
+
+    it "unloads all keys when specified" do
+      rnp.unload_keys
+      expect(rnp.keyids.size).to be 0
+    end
+  end
 
   describe Rnp.instance_method(:save_keys) do
     it 'saves only public keys when specified' do
