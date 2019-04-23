@@ -39,13 +39,13 @@ describe Rnp::Key do
         keys = enumerator.to_a
         expect(keys.size).to be 3
         expect(
-          (keys.select { |k| k.keyid == "1ED63EE56FADC34D" }).size
+          (keys.select { |k| k.keyid == "1ED63EE56FADC34D" }).size,
         ).to be 1
         expect(
-          (keys.select { |k| k.keyid == "1D7E8A5393C997A8" }).size
+          (keys.select { |k| k.keyid == "1D7E8A5393C997A8" }).size,
         ).to be 1
         expect(
-          (keys.select { |k| k.keyid == "8A05B89FAD5ADED1" }).size
+          (keys.select { |k| k.keyid == "8A05B89FAD5ADED1" }).size,
         ).to be 1
       end
 
@@ -54,13 +54,13 @@ describe Rnp::Key do
         key.each_subkey { |k| keys << k }
         expect(keys.size).to be 3
         expect(
-          (keys.select { |k| k.keyid == "1ED63EE56FADC34D" }).size
+          (keys.select { |k| k.keyid == "1ED63EE56FADC34D" }).size,
         ).to be 1
         expect(
-          (keys.select { |k| k.keyid == "1D7E8A5393C997A8" }).size
+          (keys.select { |k| k.keyid == "1D7E8A5393C997A8" }).size,
         ).to be 1
         expect(
-          (keys.select { |k| k.keyid == "8A05B89FAD5ADED1" }).size
+          (keys.select { |k| k.keyid == "8A05B89FAD5ADED1" }).size,
         ).to be 1
       end
     end
@@ -70,13 +70,13 @@ describe Rnp::Key do
       it "has the correct subkeys" do
         keys = key.subkeys
         expect(
-          (keys.select { |k| k.keyid == "1ED63EE56FADC34D" }).size
+          (keys.select { |k| k.keyid == "1ED63EE56FADC34D" }).size,
         ).to be 1
         expect(
-          (keys.select { |k| k.keyid == "1D7E8A5393C997A8" }).size
+          (keys.select { |k| k.keyid == "1D7E8A5393C997A8" }).size,
         ).to be 1
         expect(
-          (keys.select { |k| k.keyid == "8A05B89FAD5ADED1" }).size
+          (keys.select { |k| k.keyid == "8A05B89FAD5ADED1" }).size,
         ).to be 1
       end
     end
