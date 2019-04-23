@@ -2,18 +2,22 @@
 
 # (c) 2019 Ribose Inc.
 
-require 'json'
+require "json"
 
-require 'spec_helper'
+require "spec_helper"
 
 describe Rnp::Key.instance_method(:unload),
          skip: !LibRnp::HAVE_RNP_KEY_REMOVE do
   let(:rnp) do
     rnp = Rnp.new
-    rnp.load_keys(format: "GPG",
-                  input: Rnp::Input.from_path("spec/data/keyrings/gpg/pubring.gpg"))
-    rnp.load_keys(format: "GPG",
-                  input: Rnp::Input.from_path("spec/data/keyrings/gpg/secring.gpg"))
+    rnp.load_keys(
+      format: "GPG",
+      input: Rnp::Input.from_path("spec/data/keyrings/gpg/pubring.gpg")
+    )
+    rnp.load_keys(
+      format: "GPG",
+      input: Rnp::Input.from_path("spec/data/keyrings/gpg/secring.gpg")
+    )
     rnp
   end
   let(:key) { rnp.find_key(keyid: "1ED63EE56FADC34D") }
@@ -40,4 +44,3 @@ describe Rnp::Key.instance_method(:unload),
     expect(rnp.keyids.include?("1ED63EE56FADC34D")).to be false
   end
 end
-
