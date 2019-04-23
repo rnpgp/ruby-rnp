@@ -132,9 +132,11 @@ describe Rnp do
            skip: !LibRnp::HAVE_RNP_UNLOAD_KEYS do
     let(:rnp) do
       rnp = Rnp.new
-      rnp.load_keys(format: 'GPG',
-                    input: Rnp::Input.from_path('spec/data/keyrings/gpg/secring.gpg'),
-                    public_keys: true, secret_keys: true)
+      rnp.load_keys(
+        format: "GPG",
+        input: Rnp::Input.from_path("spec/data/keyrings/gpg/secring.gpg"),
+        public_keys: true, secret_keys: true
+      )
       expect(rnp.keyids.size).to be 7
       rnp.keyids.each do |keyid|
         key = rnp.find_key(keyid: keyid)
@@ -144,7 +146,7 @@ describe Rnp do
       rnp
     end
 
-    it 'unloads only public keys when specified' do
+    it "unloads only public keys when specified" do
       rnp.unload_keys(public_keys: true, secret_keys: false)
       expect(rnp.keyids.size).to be 7
       rnp.keyids.each do |keyid|
@@ -154,7 +156,7 @@ describe Rnp do
       end
     end
 
-    it 'unloads only secret keys when specified' do
+    it "unloads only secret keys when specified" do
       rnp.unload_keys(public_keys: false, secret_keys: true)
       expect(rnp.keyids.size).to be 7
       rnp.keyids.each do |keyid|
@@ -164,11 +166,11 @@ describe Rnp do
       end
     end
 
-    it 'unloads all keys when specified' do
+    it "unloads all keys when specified" do
       rnp.unload_keys
       expect(rnp.keyids.size).to be 0
     end
-  end # unload_keys
+  end
 
   describe Rnp.instance_method(:save_keys) do
     it 'saves only public keys when specified' do

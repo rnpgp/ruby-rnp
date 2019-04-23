@@ -142,7 +142,8 @@ class Rnp
   end
 
   def unload_keys(public_keys: true, secret_keys: true)
-    raise ArgumentError, 'At least one of public_keys or secret_keys must be true' if !public_keys && !secret_keys
+    raise ArgumentError, "At least one of public_keys or secret_keys must be true" \
+      if !public_keys && !secret_keys
     flags = unload_keys_flags(public_keys: public_keys, secret_keys: secret_keys)
     Rnp.call_ffi(:rnp_unload_keys, @ptr, flags)
   end
