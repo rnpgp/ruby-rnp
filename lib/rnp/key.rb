@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# (c) 2018 Ribose Inc.
+# (c) 2018,2019 Ribose Inc.
 
 require 'ffi'
 
@@ -263,6 +263,23 @@ class Rnp
       ensure
         LibRnp.rnp_buffer_destroy(presult)
       end
+    end
+
+    # Unload this key.
+    #
+    # @note When both the public and secret portions of this key have been
+    # unloaded, you should no longer interact with this object.
+    #
+    # @param unload_public [Boolean] if true then the public key will be
+    #   unloaded
+    # @param unload_secret [Boolean] if true then the secret  key will be
+    #   unloaded
+    # @return [void]
+    def unload(unload_public: true, unload_secret: true)
+      flags = 0
+      flags |= LibRnp::RNP_KEY_REMOVE_PUBLIC if unload_public
+      flags |= LibRnp::RNP_KEY_REMOVE_SECRET if unload_secret
+      Rnp.call_ffi(:rnp_key_remove, @ptr, flags)
     end
 
     private

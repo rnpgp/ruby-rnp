@@ -306,6 +306,8 @@ module LibRnp
     rnp_version_patch: [%i[uint32], :uint32],
     # unload keys
     rnp_unload_keys: [%i[pointer uint32], :uint32],
+    # remove key
+    rnp_key_remove: [%i[pointer uint32], :uint32],
   }.each do |name, signature|
     present = !ffi_libraries[0].find_function(name.to_s).nil?
     if !present
@@ -340,6 +342,9 @@ module LibRnp
 
   RNP_KEY_UNLOAD_PUBLIC = (1 << 0)
   RNP_KEY_UNLOAD_SECRET = (1 << 1)
+
+  RNP_KEY_REMOVE_PUBLIC = (1 << 0)
+  RNP_KEY_REMOVE_SECRET = (1 << 1)
 
   RNP_JSON_PUBLIC_MPIS = (1 << 0)
   RNP_JSON_SECRET_MPIS = (1 << 1)
