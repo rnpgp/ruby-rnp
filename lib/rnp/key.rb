@@ -282,6 +282,22 @@ class Rnp
       Rnp.call_ffi(:rnp_key_remove, @ptr, flags)
     end
 
+    # Enumerate each subkey for this key.
+    #
+    # @return [self, Enumerator]
+    def each_subkey(&block)
+      block or return enum_for(:subkey_iterator)
+      subkey_iterator(&block)
+      self
+    end
+
+    # Get a list of all subkeys for this key.
+    #
+    # @return [Array<Key>]
+    def subkeys
+      each_subkey.to_a
+    end
+
     private
 
     def string_property(func)
@@ -337,6 +353,20 @@ class Rnp
       flags |= LibRnp::RNP_KEY_EXPORT_SECRET if secret_key
       flags |= LibRnp::RNP_KEY_EXPORT_SUBKEYS if with_subkeys
       Rnp.call_ffi(:rnp_key_export, @ptr, output.ptr, flags)
+    end
+
+    def subkey_iterator
+      pcount = FFI::MemoryPointer.new(:size_t)
+      Rnp.call_ffi(:rnp_key_get_subkey_count, @ptr, pcount)
+      count = pcount.read(:size_t)
+      pptr = FFI::MemoryPointer.new(:pointer)
+      (0...count).each do |i|
+        Rnp.call_ffi(:rnp_key_get_subkey_at, @ptr, i, pptr)
+        begin
+          psubkey = pptr.read_pointer
+          yield Rnp::Key.new(psubkey) unless psubkey.null?
+        end
+      end
     end
   end # class
 end # class
