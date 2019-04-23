@@ -12,11 +12,11 @@ describe Rnp::Key.instance_method(:unload),
     rnp = Rnp.new
     rnp.load_keys(
       format: "GPG",
-      input: Rnp::Input.from_path("spec/data/keyrings/gpg/pubring.gpg")
+      input: Rnp::Input.from_path("spec/data/keyrings/gpg/pubring.gpg"),
     )
     rnp.load_keys(
       format: "GPG",
-      input: Rnp::Input.from_path("spec/data/keyrings/gpg/secring.gpg")
+      input: Rnp::Input.from_path("spec/data/keyrings/gpg/secring.gpg"),
     )
     rnp
   end
