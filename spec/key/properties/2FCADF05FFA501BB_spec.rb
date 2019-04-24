@@ -99,13 +99,17 @@ describe Rnp::Key do
     end
 
     describe Rnp::Key.instance_method(:secret_key_data) do
-      it { expect{ key.secret_key_data }.to raise_error(Rnp::NoSuitableKeyError) }
+      it do
+        expect { key.secret_key_data }.to raise_error(Rnp::NoSuitableKeyError)
+      end
     end
 
     context "when the secret key has been loaded" do
       before do
-        @rnp.load_keys(format: "GPG",
-                       input: Rnp::Input.from_path("spec/data/keyrings/gpg/secring.gpg"))
+        @rnp.load_keys(
+          format: "GPG",
+          input: Rnp::Input.from_path("spec/data/keyrings/gpg/secring.gpg"),
+        )
       end
 
       describe Rnp::Key.instance_method(:secret_key_present?) do
@@ -127,7 +131,7 @@ describe Rnp::Key do
           public_mpis: true,
           secret_mpis: false,
           signatures: true,
-          signature_mpis: false
+          signature_mpis: false,
         )
       end
 
@@ -137,4 +141,3 @@ describe Rnp::Key do
     end
   end
 end
-
