@@ -126,7 +126,7 @@ dbpkwTCmBVbAmazgea0B
 
     describe Rnp::Key.instance_method(:secret_key_data) do
       it do
-        expect{ key.secret_key_data }.to raise_error(Rnp::NoSuitableKeyError)
+        expect { key.secret_key_data }.to raise_error(Rnp::NoSuitableKeyError)
       end
     end
 
@@ -166,7 +166,7 @@ egFFAuHlJykKDFqA94sGHrQsAP9ZXle7FHbL7OcL5KfiyVQ01nW6ZMEwpgVWwJms
           public_mpis: true,
           secret_mpis: false,
           signatures: true,
-          signature_mpis: false
+          signature_mpis: false,
         )
       end
 
@@ -176,4 +176,3 @@ egFFAuHlJykKDFqA94sGHrQsAP9ZXle7FHbL7OcL5KfiyVQ01nW6ZMEwpgVWwJms
     end
   end
 end
-
