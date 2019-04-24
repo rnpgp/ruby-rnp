@@ -41,7 +41,8 @@ dbpkwTCmBVbAmazgea0B
       expect(key.keyid).to eql "1095C3ED6D43C03B"
     end
 
-    it "has the correct grip" do
+    it "has the correct grip",
+       skip: !Rnp.has?("dsa-elg-grip-calc") do
       expect(key.grip).to eql "C52C89C07E9222082474F499C8BC25D7A6DDD63E"
     end
 
