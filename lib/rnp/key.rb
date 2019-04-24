@@ -305,6 +305,15 @@ class Rnp
       string_property(:rnp_key_get_alg)
     end
 
+    # Get the bit length for this key.
+    #
+    # @return [Integer]
+    def bits
+      pbits = FFI::MemoryPointer.new(:uint32)
+      Rnp.call_ffi(:rnp_key_get_bits, @ptr, pbits)
+      pbits.read(:uint32)
+    end
+
     private
 
     def string_property(func)

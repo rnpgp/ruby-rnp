@@ -32,6 +32,10 @@ describe Rnp::Key do
       expect(key.grip).to eql 'D9839D61EDAF0B3974E0A4A341D6E95F3479B9B7'
     end
 
+    it "has the correct bit length", skip: !LibRnp::HAVE_RNP_KEY_GET_BITS do
+      expect(key.bits).to be 1024
+    end
+
     it 'raises an error when requesting primary userid' do
       expect { key.primary_userid }.to raise_error(Rnp::Error)
     end
