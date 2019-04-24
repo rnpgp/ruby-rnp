@@ -32,7 +32,7 @@ describe Rnp::Key do
       expect(key.grip).to eql '7EAB41A2F46257C36F2892696F5A2F0432499AD3'
     end
 
-    it "has the correct bit length", skip:!LibRnp::HAVE_RNP_KEY_GET_BITS do
+    it "has the correct bit length", skip: !LibRnp::HAVE_RNP_KEY_GET_BITS do
       expect(key.bits).to be 2048
     end
 
