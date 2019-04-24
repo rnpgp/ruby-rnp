@@ -160,8 +160,14 @@ class Rnp
 
   FEATURES = {
     # Support for setting hash, creation, and expiration time for individual
-    # signatures in a sign operation.
-    'per-signature-opts' => Rnp.version > Rnp.version('0.11.0') || Rnp.commit_time >= 1546035818
+    # signatures in a sign operation. Older versions of rnp returned a
+    # "not implemented" error.
+    "per-signature-opts" => Rnp.version > Rnp.version("0.11.0") ||
+      Rnp.commit_time >= 1546035818,
+    # Correct grip calculation for Elgamal/DSA keys. This was actually before
+    # the commit timestamp API was added, so this isn't accurate in one case.
+    "dsa-elg-grip-calc" => Rnp.version > Rnp.version("0.11.0") ||
+      Rnp.commit_time >= 1538219020,
   }.freeze
 
   def self.has?(feature)
