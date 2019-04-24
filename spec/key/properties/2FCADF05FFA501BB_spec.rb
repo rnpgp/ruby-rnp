@@ -28,7 +28,8 @@ describe Rnp::Key do
       expect(key.keyid).to eql "2FCADF05FFA501BB"
     end
 
-    it "has the correct grip" do
+    it "has the correct grip",
+       skip: !Rnp.has?("dsa-elg-grip-calc") do
       expect(key.grip).to eql "B2A7F6C34AA2C15484783E9380671869A977A187"
     end
 
