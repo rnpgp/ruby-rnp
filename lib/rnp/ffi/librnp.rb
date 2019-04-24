@@ -314,6 +314,7 @@ module LibRnp
     rnp_key_get_alg: [%i[pointer pointer], :uint32],
     rnp_key_get_bits: [%i[pointer pointer], :uint32],
     rnp_key_get_dsa_qbits: [%i[pointer pointer], :uint32],
+    rnp_key_get_curve: [%i[pointer pointer], :uint32],
   }.each do |name, signature|
     present = !ffi_libraries[0].find_function(name.to_s).nil?
     if !present

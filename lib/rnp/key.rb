@@ -323,6 +323,13 @@ class Rnp
       pbits.read(:uint32)
     end
 
+    # Get the curve of this EC key.
+    #
+    # @return [String]
+    def curve
+      string_property(:rnp_key_get_curve)
+    end
+
     private
 
     def string_property(func)
