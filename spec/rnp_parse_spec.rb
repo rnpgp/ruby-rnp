@@ -13,8 +13,9 @@ describe Rnp.method(:parse),
       format: "GPG",
     )
     key = rnp.find_key(keyid: "8A05B89FAD5ADED1")
+    @key_data = key.public_key_data
     @data = Rnp.parse(
-      input: Rnp::Input.from_string(key.public_key_data),
+      input: Rnp::Input.from_string(@key_data),
     ).freeze
   end
 
@@ -114,6 +115,63 @@ describe Rnp.method(:parse),
         expect(subpkt["critical"]).to be false
         expect(subpkt["issuer keyid"]).to eql "7bc6709b15c23a4a"
       end
+    end
+  end
+
+  context "when mpi is false" do
+    it "does not include MPIs" do
+      expect(@data[0]["material"].include?("e.raw")).to be false
+    end
+  end
+
+  context "when mpi is true" do
+    before(:all) do
+      @data = Rnp.parse(
+        input: Rnp::Input.from_string(@key_data),
+        mpi: true,
+      ).freeze
+    end
+
+    it "does include MPIs" do
+      expect(@data[0]["material"].include?("e.raw")).to be true
+    end
+  end
+
+  context "when raw is false" do
+    it "does not include raw bytes" do
+      expect(@data[0].include?("raw")).to be false
+    end
+  end
+
+  context "when raw is true" do
+    before(:all) do
+      @data = Rnp.parse(
+        input: Rnp::Input.from_string(@key_data),
+        raw: true,
+      ).freeze
+    end
+
+    it "does include raw bytes" do
+      expect(@data[0].include?("raw")).to be true
+    end
+  end
+
+  context "when grip is false" do
+    it "does not include grips" do
+      expect(@data[0].include?("grip")).to be false
+    end
+  end
+
+  context "when grip is true" do
+    before(:all) do
+      @data = Rnp.parse(
+        input: Rnp::Input.from_string(@key_data),
+        grip: true,
+      ).freeze
+    end
+
+    it "does include grips" do
+      expect(@data[0].include?("grip")).to be true
     end
   end
 end
