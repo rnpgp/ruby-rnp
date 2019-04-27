@@ -117,4 +117,3 @@ describe Rnp.method(:parse),
     end
   end
 end
-
