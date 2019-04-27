@@ -316,6 +316,9 @@ module LibRnp
     rnp_key_get_dsa_qbits: [%i[pointer pointer], :uint32],
     rnp_key_get_curve: [%i[pointer pointer], :uint32],
     rnp_key_allows_usage: [%i[pointer string pointer], :uint32],
+    # packet dumping
+    rnp_key_packets_to_json: [%i[pointer bool uint32 pointer], :uint32],
+    rnp_dump_packets_to_json: [%i[pointer uint32 pointer], :uint32],
   }.each do |name, signature|
     present = !ffi_libraries[0].find_function(name.to_s).nil?
     if !present
@@ -358,6 +361,10 @@ module LibRnp
   RNP_JSON_SECRET_MPIS = (1 << 1)
   RNP_JSON_SIGNATURES = (1 << 2)
   RNP_JSON_SIGNATURE_MPIS = (1 << 3)
+
+  RNP_JSON_DUMP_MPI = (1 << 0)
+  RNP_JSON_DUMP_RAW = (1 << 1)
+  RNP_JSON_DUMP_GRIP = (1 << 2)
 
   RNP_SUCCESS = 0
   RNP_ERROR_BAD_FORMAT =        0x10000001

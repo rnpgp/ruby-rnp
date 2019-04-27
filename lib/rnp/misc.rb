@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
-# (c) 2018 Ribose Inc.
+# (c) 2018,2019 Ribose Inc.
 
+require "json"
 require 'ffi'
 
 require 'rnp/utils'
@@ -156,6 +157,28 @@ class Rnp
   # @return [Integer]
   def self.commit_time
     LibRnp.rnp_version_commit_timestamp
+  end
+
+  # Parse OpenPGP data to JSON.
+  #
+  # @param input [Input] the input to read the data
+  # @param mpi [Boolean] if true then MPIs will be included
+  # @param raw [Boolean] if true then raw bytes will be included
+  # @param grip [Boolean] if true then grips will be included
+  # @return [Array]
+  def self.parse(input:, mpi: false, raw: false, grip: false)
+    flags = 0
+    flags |= LibRnp::RNP_JSON_DUMP_MPI if mpi
+    flags |= LibRnp::RNP_JSON_DUMP_RAW if raw
+    flags |= LibRnp::RNP_JSON_DUMP_GRIP if grip
+    pptr = FFI::MemoryPointer.new(:pointer)
+    Rnp.call_ffi(:rnp_dump_packets_to_json, input.ptr, flags, pptr)
+    begin
+      pjson = pptr.read_pointer
+      JSON.parse(pjson.read_string) unless pjson.null?
+    ensure
+      LibRnp.rnp_buffer_destroy(pjson)
+    end
   end
 
   FEATURES = {
