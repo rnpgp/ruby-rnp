@@ -16,18 +16,14 @@ describe Rnp.instance_method(:encrypt) do
                   input: Rnp::Input.from_path('spec/data/keyrings/gpg/secring.gpg'))
     recipient = rnp.find_key(userid: 'key0-uid0')
 
-    sender = rnp.find_key(userid: 'key1-uid2')
-    sender.unlock('password')
-
     # write some random-length plaintext
-    @plaintext = SecureRandom.hex(rand(1..(32768 *3))).freeze
+    @plaintext = SecureRandom.hex(rand(1..(32768 * 3))).freeze
     plaintextf = Tempfile.new(['ruby-rnp', '.txt'])
     plaintextf.write(@plaintext)
     plaintextf.close
 
     @encryptedf = Tempfile.new(['ruby-rnp', '.gpg'])
     rnp.encrypt(recipients: recipient,
-                #signers: sender,
                 input: Rnp::Input.from_path(plaintextf.path),
                 output: Rnp::Output.to_path(@encryptedf.path))
   end
