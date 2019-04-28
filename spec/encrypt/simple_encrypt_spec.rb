@@ -81,7 +81,7 @@ describe Rnp.instance_method(:encrypt) do
     it "does not contain AEAD packets" do
       packets = Rnp.parse(input: Rnp::Input.from_io(@encryptedf))
       expect(
-        packets.select { |pkt| pkt["header"]["tag"] == 20 }.any?
+        packets.select { |pkt| pkt["header"]["tag"] == 20 }.any?,
       ).to be false
     end
   end
@@ -116,7 +116,7 @@ describe Rnp.instance_method(:encrypt) do
     it "does contain AEAD packets" do
       packets = Rnp.parse(input: Rnp::Input.from_string(@ciphertext))
       expect(
-        packets.select { |pkt| pkt["header"]["tag"] == 20 }.any?
+        packets.select { |pkt| pkt["header"]["tag"] == 20 }.any?,
       ).to be true
     end
   end

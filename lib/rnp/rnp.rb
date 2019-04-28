@@ -368,7 +368,7 @@ class Rnp
         armored: armored,
         compression: compression,
         cipher: cipher,
-        aead: aead
+        aead: aead,
       }
       simple_encrypt(enc, recipients: recipients)
     end
@@ -438,7 +438,7 @@ class Rnp
         armored: armored,
         compression: compression,
         cipher: cipher,
-        aead: aead
+        aead: aead,
       }
       passwords = [passwords] if passwords.is_a?(String)
       passwords.each do |password|
