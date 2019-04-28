@@ -117,11 +117,11 @@ describe Rnp.instance_method(:encrypt_and_sign) do
     rnp = Rnp.new
     rnp.load_keys(
       format: "GPG",
-      input: Rnp::Input.from_path("spec/data/keyrings/gpg/pubring.gpg")
+      input: Rnp::Input.from_path("spec/data/keyrings/gpg/pubring.gpg"),
     )
     rnp.load_keys(
       format: "GPG",
-      input: Rnp::Input.from_path("spec/data/keyrings/gpg/secring.gpg")
+      input: Rnp::Input.from_path("spec/data/keyrings/gpg/secring.gpg"),
     )
     recipient = rnp.find_key(userid: "key0-uid0")
 
@@ -139,19 +139,19 @@ describe Rnp.instance_method(:encrypt_and_sign) do
       recipients: recipient,
       signers: sender,
       input: Rnp::Input.from_path(plaintextf.path),
-      output: Rnp::Output.to_path(@encryptedf.path)
+      output: Rnp::Output.to_path(@encryptedf.path),
     )
   end
 
   it "raises an error when not provided the key" do
     rnp = Rnp.new
     decryptedf = Tempfile.new("ruby-rnp")
-    expect {
+    expect do
       rnp.decrypt(
         input: Rnp::Input.from_path(@encryptedf.path),
-        output: Rnp::Output.to_path(decryptedf.path)
+        output: Rnp::Output.to_path(decryptedf.path),
       )
-    }.to raise_error(Rnp::NoSuitableKeyError)
+    end.to raise_error(Rnp::NoSuitableKeyError)
   end
 
   it "requests the correct key for decrypting" do
@@ -162,14 +162,14 @@ describe Rnp.instance_method(:encrypt_and_sign) do
       expect(secret).to eql true
       rnp.load_keys(
         format: "GPG",
-        input: Rnp::Input.from_path("spec/data/keyrings/gpg/secring.gpg")
+        input: Rnp::Input.from_path("spec/data/keyrings/gpg/secring.gpg"),
       )
     end
     decryptedf = Tempfile.new("ruby-rnp")
     expect do
       rnp.decrypt(
         input: Rnp::Input.from_path(@encryptedf.path),
-        output: Rnp::Output.to_path(decryptedf.path)
+        output: Rnp::Output.to_path(decryptedf.path),
       )
     end.to raise_error(Rnp::BadPasswordError)
   end
@@ -178,13 +178,13 @@ describe Rnp.instance_method(:encrypt_and_sign) do
     rnp = Rnp.new
     rnp.load_keys(
       format: "GPG",
-      input: Rnp::Input.from_path("spec/data/keyrings/gpg/secring.gpg")
+      input: Rnp::Input.from_path("spec/data/keyrings/gpg/secring.gpg"),
     )
     decryptedf = Tempfile.new("ruby-rnp")
     expect do
       rnp.decrypt(
         input: Rnp::Input.from_path(@encryptedf.path),
-        output: Rnp::Output.to_path(decryptedf.path)
+        output: Rnp::Output.to_path(decryptedf.path),
       )
     end.to raise_error(Rnp::BadPasswordError)
   end
@@ -193,7 +193,7 @@ describe Rnp.instance_method(:encrypt_and_sign) do
     rnp = Rnp.new
     rnp.load_keys(
       format: "GPG",
-      input: Rnp::Input.from_path("spec/data/keyrings/gpg/secring.gpg")
+      input: Rnp::Input.from_path("spec/data/keyrings/gpg/secring.gpg"),
     )
     rnp.password_provider = lambda do |key, reason|
       expect(key.keyid).to eql "1ED63EE56FADC34D"
@@ -203,7 +203,7 @@ describe Rnp.instance_method(:encrypt_and_sign) do
     decryptedf = Tempfile.new("ruby-rnp", encoding: Encoding::BINARY)
     rnp.decrypt(
       input: Rnp::Input.from_io(@encryptedf),
-      output: Rnp::Output.to_path(decryptedf.path)
+      output: Rnp::Output.to_path(decryptedf.path),
     )
     decryptedf.open
     expect(decryptedf.read).to eql @plaintext
@@ -213,13 +213,13 @@ describe Rnp.instance_method(:encrypt_and_sign) do
     rnp = Rnp.new
     rnp.load_keys(
       format: "GPG",
-      input: Rnp::Input.from_path("spec/data/keyrings/gpg/secring.gpg")
+      input: Rnp::Input.from_path("spec/data/keyrings/gpg/secring.gpg"),
     )
     rnp.password_provider = "password"
     output = Rnp::Output.to_string
     rnp.verify(
       input: Rnp::Input.from_path(@encryptedf.path),
-      output: output
+      output: output,
     )
     expect(output.string).to eql @plaintext
   end
