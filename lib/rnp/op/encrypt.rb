@@ -94,11 +94,12 @@ class Rnp
     # @param hash (see #hash=)
     # @param creation_time (see #creation_time=)
     # @param expiration_time (see #expiration_time=)
-    def options=(armored: nil, compression: nil, cipher: nil, hash: nil,
-                 creation_time: nil, expiration_time: nil)
+    def options=(armored: nil, compression: nil, cipher: nil, aead: nil,
+                 hash: nil, creation_time: nil, expiration_time: nil)
       self.armored = armored unless armored.nil?
       self.compression = compression unless compression.nil?
       self.cipher = cipher unless cipher.nil?
+      self.aead = aead unless aead.nil?
       self.hash = hash unless hash.nil?
       self.creation_time = creation_time unless creation_time.nil?
       self.expiration_time = expiration_time unless expiration_time.nil?
@@ -133,6 +134,13 @@ class Rnp
     # @param cipher [String] the cipher algorithm name
     def cipher=(cipher)
       Rnp.call_ffi(:rnp_op_encrypt_set_cipher, @ptr, cipher)
+    end
+
+    # Set the AEAD algorithm for encryption.
+    #
+    # @param mode [String] the AEAD algorithm to use for encryption
+    def aead=(mode)
+      Rnp.call_ffi(:rnp_op_encrypt_set_aead, @ptr, mode.to_s)
     end
 
     # Set the hash algorithm used for calculating signatures.

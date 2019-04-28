@@ -356,16 +356,19 @@ class Rnp
   # @param armored (see Encrypt#armored=)
   # @param compression (see Encrypt#compression=)
   # @param cipher (see Encrypt#cipher=)
+  # @param aead (see Encrypt#aead=)
   def encrypt(input:, output: nil, recipients:,
               armored: nil,
               compression: nil,
-              cipher: nil)
+              cipher: nil,
+              aead: nil)
     Output.default(output) do |output_|
       enc = start_encrypt(input: input, output: output_)
       enc.options = {
         armored: armored,
         compression: compression,
-        cipher: cipher
+        cipher: cipher,
+        aead: aead
       }
       simple_encrypt(enc, recipients: recipients)
     end
@@ -380,6 +383,7 @@ class Rnp
   # @param armored (see Encrypt#armored=)
   # @param compression (see Encrypt#compression=)
   # @param cipher (see Encrypt#cipher=)
+  # @param aead (see Encrypt#aead=)
   # @param hash (see Encrypt#hash=)
   # @param creation_time (see Encrypt#creation_time=)
   # @param expiration_time (see Encrypt#expiration_time=)
@@ -387,6 +391,7 @@ class Rnp
                        armored: nil,
                        compression: nil,
                        cipher: nil,
+                       aead: nil,
                        hash: nil,
                        creation_time: nil,
                        expiration_time: nil)
@@ -396,6 +401,7 @@ class Rnp
         armored: armored,
         compression: compression,
         cipher: cipher,
+        aead: aead,
         hash: hash,
         creation_time: creation_time,
         expiration_time: expiration_time
@@ -413,6 +419,7 @@ class Rnp
   # @param armored (see Encrypt#armored=)
   # @param compression (see Encrypt#compression=)
   # @param cipher (see Encrypt#cipher=)
+  # @param aead (see Encrypt#aead=)
   # @param s2k_hash (see Encrypt#add_password)
   # @param s2k_iterations (see Encrypt#add_password)
   # @param s2k_cipher (see Encrypt#add_password)
@@ -421,6 +428,7 @@ class Rnp
                         armored: nil,
                         compression: nil,
                         cipher: nil,
+                        aead: nil,
                         s2k_hash: nil,
                         s2k_iterations: 0,
                         s2k_cipher: nil)
@@ -429,7 +437,8 @@ class Rnp
       enc.options = {
         armored: armored,
         compression: compression,
-        cipher: cipher
+        cipher: cipher,
+        aead: aead
       }
       passwords = [passwords] if passwords.is_a?(String)
       passwords.each do |password|

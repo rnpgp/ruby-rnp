@@ -319,6 +319,8 @@ module LibRnp
     # packet dumping
     rnp_key_packets_to_json: [%i[pointer bool uint32 pointer], :uint32],
     rnp_dump_packets_to_json: [%i[pointer uint32 pointer], :uint32],
+    # aead
+    rnp_op_encrypt_set_aead: [%i[pointer string], :uint32]
   }.each do |name, signature|
     present = !ffi_libraries[0].find_function(name.to_s).nil?
     if !present
