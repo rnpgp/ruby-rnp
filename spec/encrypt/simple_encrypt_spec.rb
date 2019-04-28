@@ -16,18 +16,14 @@ describe Rnp.instance_method(:encrypt) do
                   input: Rnp::Input.from_path('spec/data/keyrings/gpg/secring.gpg'))
     recipient = rnp.find_key(userid: 'key0-uid0')
 
-    sender = rnp.find_key(userid: 'key1-uid2')
-    sender.unlock('password')
-
     # write some random-length plaintext
-    @plaintext = SecureRandom.hex(rand(1..(32768 *3))).freeze
+    @plaintext = SecureRandom.hex(rand(1..(32768 * 3))).freeze
     plaintextf = Tempfile.new(['ruby-rnp', '.txt'])
     plaintextf.write(@plaintext)
     plaintextf.close
 
     @encryptedf = Tempfile.new(['ruby-rnp', '.gpg'])
     rnp.encrypt(recipients: recipient,
-                #signers: sender,
                 input: Rnp::Input.from_path(plaintextf.path),
                 output: Rnp::Output.to_path(@encryptedf.path))
   end
@@ -78,6 +74,51 @@ describe Rnp.instance_method(:encrypt) do
     rnp.decrypt(input: Rnp::Input.from_io(@encryptedf), output: Rnp::Output.to_path(decryptedf.path))
     decryptedf.open
     expect(decryptedf.read).to eql @plaintext
+  end
+
+  context "without AEAD",
+          skip: !LibRnp::HAVE_RNP_DUMP_PACKETS_TO_JSON do
+    it "does not contain AEAD packets" do
+      packets = Rnp.parse(input: Rnp::Input.from_io(@encryptedf))
+      expect(
+        packets.select { |pkt| pkt["header"]["tag"] == 20 }.any?,
+      ).to be false
+    end
+  end
+
+  context "with AEAD",
+          skip: !LibRnp::HAVE_RNP_DUMP_PACKETS_TO_JSON do
+    before(:all) do
+      rnp = Rnp.new
+      rnp.load_keys(
+        format: "GPG",
+        input: Rnp::Input.from_path("spec/data/keyrings/gpg/pubring.gpg"),
+      )
+      rnp.load_keys(
+        format: "GPG",
+        input: Rnp::Input.from_path("spec/data/keyrings/gpg/secring.gpg"),
+      )
+      recipient = rnp.find_key(userid: "key0-uid0")
+
+      # write some random-length plaintext
+      @plaintext = SecureRandom.hex(rand(1..(32768 * 3))).freeze
+
+      output = Rnp::Output.to_string
+      rnp.encrypt(
+        recipients: recipient,
+        input: Rnp::Input.from_string(@plaintext),
+        output: output,
+        aead: :OCB,
+      )
+      @ciphertext = output.string
+    end
+
+    it "does contain AEAD packets" do
+      packets = Rnp.parse(input: Rnp::Input.from_string(@ciphertext))
+      expect(
+        packets.select { |pkt| pkt["header"]["tag"] == 20 }.any?,
+      ).to be true
+    end
   end
 end # Rnp.encrypt
 
