@@ -75,6 +75,13 @@ class Rnp
   # @param output [Output] the output to write the armored
   #   data to. If nil, the result will be returned directly
   #   as a String.
+  # @param type [String] the armor type. Valid values include:
+  #   * message
+  #   * public key
+  #   * secret key
+  #   * signature
+  #   * cleartext
+  #   * nil (try to guess the type)
   # @return [nil, String]
   def self.enarmor(input:, output: nil, type: nil)
     Output.default(output) do |output_|
@@ -181,6 +188,7 @@ class Rnp
     end
   end
 
+  # @api private
   FEATURES = {
     # Support for setting hash, creation, and expiration time for individual
     # signatures in a sign operation. Older versions of rnp returned a
