@@ -365,7 +365,7 @@ describe Rnp do
       expect(rnp.fingerprints.size).to eql 7
     end
 
-    it 'contains the expected values',
+    it "contains the expected values",
        skip: !Rnp.has?("dsa-elg-grip-calc") do
       expect(rnp.grips).to eql %w[
         66D6A0800A3FACDE0C0EB60B16B3669ED380FDFA

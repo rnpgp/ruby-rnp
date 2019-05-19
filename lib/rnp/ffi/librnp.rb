@@ -321,6 +321,43 @@ module LibRnp
     rnp_dump_packets_to_json: [%i[pointer uint32 pointer], :uint32],
     # aead
     rnp_op_encrypt_set_aead: [%i[pointer string], :uint32],
+    # key generation (op)
+    rnp_op_generate_create: [%i[pointer pointer string], :uint32],
+    rnp_op_generate_subkey_create: [%i[pointer pointer pointer string],
+                                    :uint32],
+    rnp_op_generate_set_bits: [%i[pointer uint32], :uint32],
+    rnp_op_generate_set_hash: [%i[pointer string], :uint32],
+    rnp_op_generate_set_dsa_qbits: [%i[pointer uint32], :uint32],
+    rnp_op_generate_set_curve: [%i[pointer string], :uint32],
+    rnp_op_generate_set_protection_password: [%i[pointer string], :uint32],
+    rnp_op_generate_set_protection_cipher: [%i[pointer string], :uint32],
+    rnp_op_generate_set_protection_hash: [%i[pointer string], :uint32],
+    rnp_op_generate_set_protection_mode: [%i[pointer string], :uint32],
+    rnp_op_generate_set_protection_iterations: [%i[pointer uint32], :uint32],
+    rnp_op_generate_add_usage: [%i[pointer string], :uint32],
+    rnp_op_generate_clear_usage: [%i[pointer], :uint32],
+    rnp_op_generate_set_userid: [%i[pointer string], :uint32],
+    rnp_op_generate_set_expiration: [%i[pointer uint32], :uint32],
+    rnp_op_generate_add_pref_hash: [%i[pointer string], :uint32],
+    rnp_op_generate_clear_pref_hashes: [%i[pointer], :uint32],
+    rnp_op_generate_add_pref_compression: [%i[pointer string], :uint32],
+    rnp_op_generate_clear_pref_compression: [%i[pointer], :uint32],
+    rnp_op_generate_add_pref_cipher: [%i[pointer string], :uint32],
+    rnp_op_generate_clear_pref_ciphers: [%i[pointer], :uint32],
+    rnp_op_generate_set_pref_keyserver: [%i[pointer pointer], :uint32],
+    rnp_op_generate_execute: [%i[pointer], :uint32],
+    rnp_op_generate_get_key: [%i[pointer pointer], :uint32],
+    rnp_op_generate_destroy: [%i[pointer], :uint32],
+    # key generation (shortcuts)
+    rnp_generate_key_rsa: [%i[pointer uint32 uint32 string string pointer],
+                           :uint32],
+    rnp_generate_key_dsa_eg: [%i[pointer uint32 uint32 string string pointer],
+                              :uint32],
+    rnp_generate_key_ec: [%i[pointer string string string pointer], :uint32],
+    rnp_generate_key_25519: [%i[pointer string string pointer], :uint32],
+    rnp_generate_key_sm2: [%i[pointer string string pointer], :uint32],
+    rnp_generate_key_ex: [%i[pointer string string uint32 uint32 string string
+                             string string pointer], :uint32],
   }.each do |name, signature|
     present = !ffi_libraries[0].find_function(name.to_s).nil?
     if !present
