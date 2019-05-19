@@ -14,6 +14,7 @@ require 'rnp/key'
 require 'rnp/op/sign'
 require 'rnp/op/verify'
 require 'rnp/op/encrypt'
+require "rnp/op/generate"
 
 # Class used for interacting with RNP.
 class Rnp
@@ -126,6 +127,89 @@ class Rnp
     ensure
       LibRnp.rnp_buffer_destroy(presults)
     end
+  end
+
+  # Generate an RSA key (w/optional subkey).
+  #
+  # @param userid [String] the userid for the key
+  # @param bits [Integer] the bit length for the primary key
+  # @param subbits [Integer] the bit length for the subkey
+  #   (0 if no subkey should be generated)
+  # @param password [String] the password to protect the key(s)
+  #   (nil for no protection)
+  def generate_rsa(userid:, bits:, subbits: 0, password:)
+    pptr = FFI::MemoryPointer.new(:pointer)
+    Rnp.call_ffi(:rnp_generate_key_rsa, @ptr, bits, subbits, userid, password,
+                 pptr)
+    pkey = pptr.read_pointer
+    Key.new(pkey) unless pkey.null?
+  end
+
+  # Generate a DSA (w/optional ElGamal subkey) key.
+  #
+  # @param userid [String] the userid for the key
+  # @param bits [Integer] the bit length for the primary key
+  # @param subbits [Integer] the bit length for the subkey
+  #   (0 if no subkey should be generated)
+  # @param password [String] the password to protect the key(s)
+  #   (nil for no protection)
+  def generate_dsa_elgamal(userid:, bits:, subbits: 0, password:)
+    pptr = FFI::MemoryPointer.new(:pointer)
+    Rnp.call_ffi(:rnp_generate_key_dsa_eg, @ptr, bits, subbits, userid,
+                 password, pptr)
+    pkey = pptr.read_pointer
+    Key.new(pkey) unless pkey.null?
+  end
+
+  # Generate an ECDSA+ECDH key pair.
+  #
+  # @param userid [String] the userid for the key
+  # @param curve [String] the name of the curve
+  # @param password [String] the password to protect the key(s)
+  #   (nil for no protection)
+  def generate_ecdsa_ecdh(userid:, curve:, password:)
+    pptr = FFI::MemoryPointer.new(:pointer)
+    Rnp.call_ffi(:rnp_generate_key_ec, @ptr, curve, userid, password, pptr)
+    pkey = pptr.read_pointer
+    Key.new(pkey) unless pkey.null?
+  end
+
+  # Generate an EdDSA+x25519 key pair.
+  #
+  # @param userid [String] the userid for the key
+  # @param password [String] the password to protect the key(s)
+  #   (nil for no protection)
+  def generate_eddsa_25519(userid:, password:)
+    pptr = FFI::MemoryPointer.new(:pointer)
+    Rnp.call_ffi(:rnp_generate_key_25519, @ptr, userid, password, pptr)
+    pkey = pptr.read_pointer
+    Key.new(pkey) unless pkey.null?
+  end
+
+  # Generate an SM2 key pair.
+  #
+  # @param userid [String] the userid for the key
+  # @param password [String] the password to protect the key(s)
+  #   (nil for no protection)
+  def generate_sm2(userid:, password:)
+    pptr = FFI::MemoryPointer.new(:pointer)
+    Rnp.call_ffi(:rnp_generate_key_sm2, @ptr, userid, password, pptr)
+    pkey = pptr.read_pointer
+    Key.new(pkey) unless pkey.null?
+  end
+
+  # Generate a key and optional subkey.
+  #
+  # @param userid [String] the userid for the key
+  # @param password [String] the password to protect the key(s)
+  #   (nil for no protection)
+  def generate(type:, userid:, bits:, curve: nil, password:,
+               subtype: nil, subbits: 0, subcurve: nil)
+    pptr = FFI::MemoryPointer.new(:pointer)
+    Rnp.call_ffi(:rnp_generate_key_ex, @ptr, type, subtype, bits, subbits,
+                 curve, subcurve, userid, password, pptr)
+    pkey = pptr.read_pointer
+    Key.new(pkey) unless pkey.null?
   end
 
   # Load keys.
@@ -461,6 +545,30 @@ class Rnp
     Output.default(output) do |output_|
       Rnp.call_ffi(:rnp_decrypt, @ptr, input.ptr, output_.ptr)
     end
+  end
+
+  # Start a {Generate} operation.
+  #
+  # @param type [String, Symbol] the key type to generate (RSA, DSA, etc)
+  # @return [Generate]
+  def start_generate(type:)
+    pptr = FFI::MemoryPointer.new(:pointer)
+    Rnp.call_ffi(:rnp_op_generate_create, pptr, @ptr, type.to_s)
+    pgen = pptr.read_pointer
+    Generate.new(pgen) unless pgen.null?
+  end
+
+  # Start a {Generate} operation.
+  #
+  # @param primary [Key] the primary key for which to generate a subkey
+  # @param type [String, Symbol] the key type to generate (RSA, DSA, etc)
+  # @return [Generate]
+  def start_generate_subkey(primary:, type:)
+    pptr = FFI::MemoryPointer.new(:pointer)
+    Rnp.call_ffi(:rnp_op_generate_subkey_create, pptr, @ptr, primary.ptr,
+                 type.to_s)
+    pgen = pptr.read_pointer
+    Generate.new(pgen) unless pgen.null?
   end
 
   # Create a {Sign} operation.
