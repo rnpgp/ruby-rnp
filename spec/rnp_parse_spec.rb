@@ -44,7 +44,7 @@ describe Rnp.method(:parse),
       expect(pkt["version"]).to be 4
       expect(pkt["creation time"]).to be 1500569896
       expect(pkt["algorithm"]).to be 1
-      expect(pkt["algorithm.str"]).to eql "RSA"
+      expect(pkt["algorithm.str"].include?("RSA")).to be true
       expect(pkt["material"]["n.bits"]).to be 1024
       expect(pkt["material"]["e.bits"]).to be 17
       expect(pkt["keyid"]).to eql "8a05b89fad5aded1"
@@ -69,7 +69,7 @@ describe Rnp.method(:parse),
       expect(pkt["type"]).to be 24
       expect(pkt["type.str"]).to eql "Subkey Binding Signature"
       expect(pkt["algorithm"]).to be 1
-      expect(pkt["algorithm.str"]).to eql "RSA"
+      expect(pkt["algorithm.str"].include?("RSA")).to be true
       expect(pkt["hash algorithm"]).to be 2
       expect(pkt["hash algorithm.str"]).to eql "SHA1"
       expect(pkt["lbits"]).to eql "4c80"
