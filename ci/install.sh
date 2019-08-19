@@ -4,6 +4,12 @@ set -eux
 : "${CORES:=2}"
 : "${MAKE:=make}"
 
+pushd /
+sudo curl -L -o cmake.sh https://github.com/Kitware/CMake/releases/download/v3.14.5/cmake-3.14.5-Linux-x86_64.sh
+sudo sh cmake.sh --skip-license
+CMAKE=/bin/cmake
+popd
+
 # botan
 botan_build=${LOCAL_BUILDS}/botan
 if [ ! -e "${BOTAN_INSTALL}/lib/libbotan-2.so" ] && \
@@ -48,7 +54,7 @@ if [ ! -e "${RNP_INSTALL}/lib/librnp.so" ] && \
   git clone https://github.com/rnpgp/rnp ${rnp_build}
   pushd "${rnp_build}"
   git checkout "$RNP_VERSION"
-  cmake \
+  ${CMAKE} \
     -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DBUILD_SHARED_LIBS=yes \
     -DBUILD_TESTING=no \
