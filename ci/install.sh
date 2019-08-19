@@ -45,7 +45,7 @@ rnp_build=${LOCAL_BUILDS}/rnp
 if [ ! -e "${RNP_INSTALL}/lib/librnp.so" ] && \
    [ ! -e "${RNP_INSTALL}/lib/librnp.dylib" ]; then
 
-  git clone https://github.com/riboseinc/rnp ${rnp_build}
+  git clone https://github.com/rnpgp/rnp ${rnp_build}
   pushd "${rnp_build}"
   git checkout "$RNP_VERSION"
   cmake \
