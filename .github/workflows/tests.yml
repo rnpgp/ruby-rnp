@@ -1,0 +1,121 @@
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  test:
+    env:
+      MAKE_PARALLEL: 2
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        ruby: [2.5.x, 2.6.x]
+        botan: [master, 2.12.1]
+        rnp: [master, v0.13.0, v0.12.0, v0.11.0]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Set environment
+      run: |
+        LOCAL_INSTALLS="$GITHUB_WORKSPACE/installs"
+        echo "::set-env name=BOTAN_INSTALL::$LOCAL_INSTALLS/botan-install"
+        echo "::set-env name=JSONC_INSTALL::$LOCAL_INSTALLS/jsonc-install"
+        echo "::set-env name=RNP_INSTALL::$LOCAL_INSTALLS/rnp-install"
+
+    - name: Install build tools
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew install autoconf automake libtool
+
+    - name: Cache botan
+      id: cache-botan
+      uses: actions/cache@v1
+      with:
+        path: ${{ env.BOTAN_INSTALL }}
+        key: ${{ matrix.os }}-botan-${{ matrix.botan }}
+    - name: Build botan
+      if: steps.cache-botan.outputs.cache-hit != 'true'
+      run: |
+        git clone --depth 1 --branch "${{ matrix.botan }}" https://github.com/randombit/botan "${{ runner.temp }}/botan"
+        cd "${{ runner.temp }}/botan"
+        ./configure.py --prefix="${BOTAN_INSTALL}" --with-debug-info --cxxflags="-fno-omit-frame-pointer"
+        make -j${MAKE_PARALLEL} install
+
+    - name: Cache jsonc
+      id: cache-jsonc
+      uses: actions/cache@v1
+      with:
+        path: ${{ env.JSONC_INSTALL }}
+        key: ${{ matrix.os }}-jsonc
+    - name: Build jsonc
+      if: steps.cache-jsonc.outputs.cache-hit != 'true'
+      run: |
+        mkdir -p "${{ runner.temp }}/json-c"
+        cd "${{ runner.temp }}/json-c"
+        wget https://s3.amazonaws.com/json-c_releases/releases/json-c-0.12.1.tar.gz -O json-c.tar.gz
+        tar xzf json-c.tar.gz --strip 1
+        autoreconf -ivf
+        env CFLAGS="-fno-omit-frame-pointer -Wno-implicit-fallthrough -g" ./configure --prefix="$JSONC_INSTALL"
+        make -j${MAKE_PARALLEL} install
+
+    - name: Cache rnp
+      id: cache-rnp
+      uses: actions/cache@v1
+      with:
+        path: ${{ env.RNP_INSTALL }}
+        key: ${{ matrix.os }}-botan-${{ matrix.botan }}-rnp-${{ matrix.rnp }}
+    - name: Build rnp
+      if: steps.cache-rnp.outputs.cache-hit != 'true'
+      run: |
+        git clone https://github.com/rnpgp/rnp "${{ runner.temp }}/rnp"
+        cd "${{ runner.temp }}/rnp"
+        git checkout "${{ matrix.rnp }}"
+        cmake \
+          -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+          -DBUILD_SHARED_LIBS=yes \
+          -DBUILD_TESTING=no \
+          -DCMAKE_PREFIX_PATH="$BOTAN_INSTALL;$JSONC_INSTALL" \
+          -DCMAKE_INSTALL_PREFIX="${RNP_INSTALL}" \
+          .
+        make -j${MAKE_PARALLEL} install
+
+    - name: Set up Ruby
+      uses: actions/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby }}
+
+    - name: Install bundler
+      run:
+        gem install bundler
+
+    - name: Workaround macOS SIP
+      if: matrix.os == 'macos-latest'
+      run: |
+        sudo cp -a "$JSONC_INSTALL/lib"/* /usr/local/lib
+        sudo cp -a "$BOTAN_INSTALL/lib"/* /usr/local/lib
+        sudo cp -a "$RNP_INSTALL/lib"/* /usr/local/lib
+
+    - name: Cache bundle
+      id: cache-bundle
+      uses: actions/cache@v1
+      with:
+        path: "${{ runner.workspace }}/bundle"
+        key: ${{ matrix.os }}-ruby-${{ matrix.ruby }}-bundle
+    - name: Install bundle
+      if: steps.cache-bundle.outputs.cache-hit != 'true'
+      run: |
+        bundle config set path "${{ runner.workspace }}/bundle"
+        bundle install --jobs 4 --retry 3
+
+    - name: Run tests
+      run: |
+        bundle config set path "${{ runner.workspace }}/bundle"
+        bundle install --jobs 4 --retry 3
+        export LD_LIBRARY_PATH="$JSONC_INSTALL/lib:$BOTAN_INSTALL/lib:$RNP_INSTALL/lib"
+        bundle exec rake
+
