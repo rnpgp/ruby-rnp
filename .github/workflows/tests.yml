@@ -15,7 +15,7 @@ jobs:
         os: [ubuntu-latest, macos-latest]
         ruby: [2.5.x, 2.6.x]
         botan: [master, 2.12.1]
-        rnp: [master, v0.13.0, v0.12.0, v0.11.0]
+        rnp: [master, v0.13.0]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v1
