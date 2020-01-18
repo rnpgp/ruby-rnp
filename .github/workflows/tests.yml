@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        ruby: [2.5, 2.6]
+        ruby: [2.5, 2.6, 2.7]
         botan: [master, 2.12.1]
         rnp: [master, v0.13.0]
     runs-on: ${{ matrix.os }}
