@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        ruby: [2.5.x, 2.6.x]
+        ruby: [2.5, 2.6]
         botan: [master, 2.12.1]
         rnp: [master, v0.13.0]
     runs-on: ${{ matrix.os }}
@@ -85,7 +85,7 @@ jobs:
         make -j${MAKE_PARALLEL} install
 
     - name: Set up Ruby
-      uses: actions/setup-ruby@v1
+      uses: eregon/use-ruby-action@v1.5.0
       with:
         ruby-version: ${{ matrix.ruby }}
 
