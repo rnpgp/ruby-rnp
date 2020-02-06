@@ -241,6 +241,21 @@ class Rnp
     presult.read(:bool)
   end
 
+  # Get a list of supported features (by type)
+  #
+  # @param type [String] the type of feature ('symmetric algorithm', ...)
+  # @return [Array]
+  def self.supported_features(type)
+    pptr = FFI::MemoryPointer.new(:pointer)
+    Rnp.call_ffi(:rnp_supported_features, type, pptr)
+    begin
+      presult = pptr.read_pointer
+      JSON.parse(presult.read_string) unless presult.null?
+    ensure
+      LibRnp.rnp_buffer_destroy(presult)
+    end
+  end
+
   # @api private
   FEATURES = {
     # Support for setting hash, creation, and expiration time for individual

@@ -209,3 +209,15 @@ describe Rnp.method(:supports?),
     expect { Rnp.supports?('fake', 'value') }.to raise_error(Rnp::Error)
   end
 end
+
+describe Rnp.method(:supported_features),
+  skip: !LibRnp::HAVE_RNP_SUPPORTED_FEATURES do
+
+  it 'raises an error on an invalid type' do
+    expect { Rnp.supported_features('fake') }.to raise_error(Rnp::Error)
+  end
+
+  it 'returns the correct type' do
+    expect(Rnp.supported_features('symmetric algorithm').class).to be Array
+  end
+end
