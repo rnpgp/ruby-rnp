@@ -161,3 +161,20 @@ describe Rnp.method(:s2k_iterations),
       Rnp.s2k_iterations(hash: 'SM3', msec: MSEC)
   end
 end
+
+describe Rnp.method(:enable_debug),
+  skip: !LibRnp::HAVE_RNP_ENABLE_DEBUG do
+
+  it 'does not raise an error' do
+    expect { Rnp.enable_debug }.to_not raise_error
+    expect { Rnp.enable_debug('all') }.to_not raise_error
+  end
+end
+
+describe Rnp.method(:disable_debug),
+  skip: !LibRnp::HAVE_RNP_DISABLE_DEBUG do
+
+  it 'does not raise an error' do
+    expect { Rnp.disable_debug }.to_not raise_error
+  end
+end

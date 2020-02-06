@@ -199,6 +199,21 @@ class Rnp
     piters.read(:size_t)
   end
 
+  # Enable debugging
+  #
+  # @param file [String] the file to enable debugging for (or nil for all)
+  # @return [void]
+  def self.enable_debug(file = nil)
+    Rnp.call_ffi(:rnp_enable_debug, file)
+  end
+
+  # Disable previously-enabled debugging
+  #
+  # @return [void]
+  def self.disable_debug
+    Rnp.call_ffi(:rnp_disable_debug)
+  end
+
   # @api private
   FEATURES = {
     # Support for setting hash, creation, and expiration time for individual
