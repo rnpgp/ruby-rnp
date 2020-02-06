@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# (c) 2018 Ribose Inc.
+# (c) 2018-2020 Ribose Inc.
 
 require 'spec_helper'
 
@@ -141,5 +141,23 @@ describe 'versioning', skip: !LibRnp::HAVE_RNP_VERSION do
     it 'returns a number' do
       expect(Rnp.version_patch(Rnp.version)).to be_kind_of(Integer)
     end
+  end
+end
+
+describe Rnp.method(:s2k_iterations),
+  skip: !LibRnp::HAVE_RNP_CALCULATE_ITERATIONS do
+
+  it 'raises on an invalid hash' do
+    expect{ Rnp.s2k_iterations(hash: 'Fake', msec: 10) }.to raise_error(Rnp::Error)
+  end
+
+  it 'returns the correct type' do
+    expect(Rnp.s2k_iterations(hash: 'SM3', msec: 1)).to be_kind_of(Integer)
+  end
+
+  it 'returns a higher iterations count for MD5 vs SM3' do
+    MSEC = 5
+    expect(Rnp.s2k_iterations(hash: 'MD5', msec: MSEC)).to be >
+      Rnp.s2k_iterations(hash: 'SM3', msec: MSEC)
   end
 end

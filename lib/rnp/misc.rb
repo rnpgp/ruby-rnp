@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# (c) 2018,2019 Ribose Inc.
+# (c) 2018-2020 Ribose Inc.
 
 require "json"
 require 'ffi'
@@ -186,6 +186,17 @@ class Rnp
     ensure
       LibRnp.rnp_buffer_destroy(pjson)
     end
+  end
+
+  # Calculate s2k iterations
+  #
+  # @param hash [String] the hash algorithm to use
+  # @param msec [Integer] the desired number of milliseconds
+  # @return [Integer]
+  def self.s2k_iterations(hash:, msec:)
+    piters = FFI::MemoryPointer.new(:size_t)
+    Rnp.call_ffi(:rnp_calculate_iterations, hash, msec, piters)
+    piters.read(:size_t)
   end
 
   # @api private

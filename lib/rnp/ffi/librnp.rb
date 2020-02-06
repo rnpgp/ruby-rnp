@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# (c) 2018,2019 Ribose Inc.
+# (c) 2018-2020 Ribose Inc.
 
 require 'ffi'
 
@@ -358,6 +358,7 @@ module LibRnp
     rnp_generate_key_sm2: [%i[pointer string string pointer], :uint32],
     rnp_generate_key_ex: [%i[pointer string string uint32 uint32 string string
                              string string pointer], :uint32],
+    rnp_calculate_iterations: [%i[string size_t pointer], :uint32],
   }.each do |name, signature|
     present = !ffi_libraries[0].find_function(name.to_s).nil?
     if !present
