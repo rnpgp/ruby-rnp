@@ -362,6 +362,8 @@ module LibRnp
     # debugging
     rnp_enable_debug: [%i[pointer], :uint32],
     rnp_disable_debug: [%i[], :uint32],
+    # guess contents
+    rnp_guess_contents: [%i[pointer pointer], :uint32],
   }.each do |name, signature|
     present = !ffi_libraries[0].find_function(name.to_s).nil?
     if !present
