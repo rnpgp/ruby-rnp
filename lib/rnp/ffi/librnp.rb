@@ -359,6 +359,9 @@ module LibRnp
     rnp_generate_key_ex: [%i[pointer string string uint32 uint32 string string
                              string string pointer], :uint32],
     rnp_calculate_iterations: [%i[string size_t pointer], :uint32],
+    # debugging
+    rnp_enable_debug: [%i[pointer], :uint32],
+    rnp_disable_debug: [%i[], :uint32],
   }.each do |name, signature|
     present = !ffi_libraries[0].find_function(name.to_s).nil?
     if !present
