@@ -178,3 +178,17 @@ describe Rnp.method(:disable_debug),
     expect { Rnp.disable_debug }.to_not raise_error
   end
 end
+
+describe Rnp.method(:guess_contents),
+  skip: !LibRnp::HAVE_RNP_GUESS_CONTENTS do
+
+  it 'correctly identifies a public key' do
+    expect(Rnp.guess_contents(
+      Rnp::Input.from_path('spec/data/keyrings/gpg/pubring.gpg')
+    )).to eql 'public key'
+  end
+
+  it 'returns unknown on unknown input' do
+    expect(Rnp.guess_contents(Rnp::Input.from_string(' '))).to eql 'unknown'
+  end
+end

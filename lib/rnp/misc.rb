@@ -214,6 +214,22 @@ class Rnp
     Rnp.call_ffi(:rnp_disable_debug)
   end
 
+  # Guess the contents of an input
+  #
+  # @param input [Input]
+  # @return [String] the guessed content type (or 'unknown'), which may be
+  #   used with {enarmor}
+  def self.guess_contents(input)
+    pptr = FFI::MemoryPointer.new(:pointer)
+    Rnp.call_ffi(:rnp_guess_contents, input.ptr, pptr)
+    begin
+      presult = pptr.read_pointer
+      presult.read_string unless presult.null?
+    ensure
+      LibRnp.rnp_buffer_destroy(presult)
+    end
+  end
+
   # @api private
   FEATURES = {
     # Support for setting hash, creation, and expiration time for individual
