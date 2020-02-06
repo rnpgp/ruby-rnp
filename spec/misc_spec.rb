@@ -192,3 +192,20 @@ describe Rnp.method(:guess_contents),
     expect(Rnp.guess_contents(Rnp::Input.from_string(' '))).to eql 'unknown'
   end
 end
+
+describe Rnp.method(:supports?),
+  skip: !LibRnp::HAVE_RNP_SUPPORTS_FEATURE do
+
+  it 'returns a boolean' do
+    value = Rnp.supports?('hash algorithm', 'SM3')
+    expect(!!value == value).to be true
+  end
+
+  it 'return false on a fake alg' do
+    expect(Rnp.supports?('symmetric algorithm', 'FAKE')).to be false
+  end
+
+  it 'raises an error on an invalid type' do
+    expect { Rnp.supports?('fake', 'value') }.to raise_error(Rnp::Error)
+  end
+end

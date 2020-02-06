@@ -230,6 +230,17 @@ class Rnp
     end
   end
 
+  # Check if a specific feature is supported
+  #
+  # @param type [String] the type of feature ('symmetric algorithm', ...)
+  # @param name [String] the specific feature ('CAST5', ...)
+  # @return [Boolean]
+  def self.supports?(type, name)
+    presult = FFI::MemoryPointer.new(:bool)
+    Rnp.call_ffi(:rnp_supports_feature, type, name, presult)
+    presult.read(:bool)
+  end
+
   # @api private
   FEATURES = {
     # Support for setting hash, creation, and expiration time for individual
