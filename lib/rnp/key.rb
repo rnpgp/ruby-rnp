@@ -7,6 +7,7 @@ require 'ffi'
 require 'rnp/error'
 require 'rnp/ffi/librnp'
 require 'rnp/utils'
+require 'rnp/userid'
 
 class Rnp
   # Class that represents a PGP key (potentially encompassing both the public
@@ -80,6 +81,38 @@ class Rnp
     # @return [Array<String>]
     def userids
       each_userid.to_a
+    end
+
+    # Enumerate each {UserID} for this key.
+    #
+    # @return [self, Enumerator]
+    def each_uid(&block)
+      block or return enum_for(:uid_iterator)
+      uid_iterator(&block)
+      self
+    end
+
+    # Get a list of {UserID}s for this key.
+    #
+    # @return [Array<UserID>]
+    def uids
+      each_uid.to_a
+    end
+
+    # Enumerate each {Signature} for this key.
+    #
+    # @return [self, Enumerator]
+    def each_signature(&block)
+      block or return enum_for(:signature_iterator)
+      signature_iterator(&block)
+      self
+    end
+
+    # Get a list of {Signature}s for this key.
+    #
+    # @return [Array<Signature>]
+    def signatures
+      each_signature.to_a
     end
 
     # Add a userid to a key.
@@ -420,6 +453,40 @@ class Rnp
         ensure
           LibRnp.rnp_buffer_destroy(puserid)
         end
+      end
+    end
+
+    def uid_iterator
+      pcount = FFI::MemoryPointer.new(:size_t)
+      Rnp.call_ffi(:rnp_key_get_uid_count, @ptr, pcount)
+      count = pcount.read(:size_t)
+      pptr = FFI::MemoryPointer.new(:pointer)
+      (0...count).each do |i|
+        Rnp.call_ffi(:rnp_key_get_uid_handle_at, @ptr, i, pptr)
+        begin
+          phandle = pptr.read_pointer
+          puserid = nil
+          next if phandle.nil?
+          Rnp.call_ffi(:rnp_key_get_uid_at, @ptr, i, pptr)
+          puserid = pptr.read_pointer
+          yield UserID.new(phandle, puserid.read_string) unless puserid.null?
+          phandle = nil
+        ensure
+          LibRnp.rnp_uid_handle_destroy(phandle)
+          LibRnp.rnp_buffer_destroy(puserid)
+        end
+      end
+    end
+
+    def signature_iterator
+      pcount = FFI::MemoryPointer.new(:size_t)
+      Rnp.call_ffi(:rnp_key_get_signature_count, @ptr, pcount)
+      count = pcount.read(:size_t)
+      pptr = FFI::MemoryPointer.new(:pointer)
+      (0...count).each do |i|
+        Rnp.call_ffi(:rnp_key_get_signature_at, @ptr, i, pptr)
+        psig = pptr.read_pointer
+        yield Signature.new(psig) unless psig.null?
       end
     end
 
