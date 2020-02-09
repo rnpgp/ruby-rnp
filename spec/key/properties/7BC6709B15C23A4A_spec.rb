@@ -30,6 +30,21 @@ describe Rnp::Key do
       expect(key.can?(:encrypt)).to be false
     end
 
+    it 'has the correct creation time',
+       skip: !LibRnp::HAVE_RNP_KEY_GET_CREATION do
+      expect(key.creation_time).to eql Time.at(1500569820)
+    end
+
+    it 'has the correct expiration time',
+       skip: !LibRnp::HAVE_RNP_KEY_GET_EXPIRATION do
+      expect(key.expiration_time).to eql Time.at(0)
+    end
+
+    it 'raises an error on accessing primary grip',
+       skip: !LibRnp::HAVE_RNP_KEY_GET_PRIMARY_GRIP do
+      expect { key.primary_grip }.to raise_error(Rnp::Error)
+    end
+
     it 'has the correct fingerprint' do
       expect(key.fingerprint).to eql 'E95A3CBF583AA80A2CCC53AA7BC6709B15C23A4A'
     end
