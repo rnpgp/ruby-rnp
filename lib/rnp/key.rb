@@ -60,6 +60,13 @@ class Rnp
       string_property(:rnp_key_get_grip)
     end
 
+    # Get the primary grip of the key (for subkeys)
+    #
+    # @return [String]
+    def primary_grip
+      string_property(:rnp_key_get_primary_grip)
+    end
+
     # Get the primary userid of the key
     #
     # @return [String]
@@ -406,6 +413,24 @@ class Rnp
     # @return [String]
     def revocation_reason
       string_property(:rnp_key_get_revocation_reason)
+    end
+
+    # Retrieve the creation time of the key
+    #
+    # @return [Time]
+    def creation_time
+      ptime = FFI::MemoryPointer.new(:uint32)
+      Rnp.call_ffi(:rnp_key_get_creation, @ptr, ptime)
+      Time.at(ptime.read(:uint32))
+    end
+
+    # Retrieve the expiration time of the key
+    #
+    # @return [Time]
+    def expiration_time
+      ptime = FFI::MemoryPointer.new(:uint32)
+      Rnp.call_ffi(:rnp_key_get_expiration, @ptr, ptime)
+      Time.at(ptime.read(:uint32))
     end
 
     private

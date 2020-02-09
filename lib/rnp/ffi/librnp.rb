@@ -390,6 +390,10 @@ module LibRnp
     rnp_uid_handle_destroy: [%i[pointer], :uint32],
     rnp_uid_get_signature_count: [%i[pointer pointer], :uint32],
     rnp_uid_get_signature_at: [%i[pointer size_t pointer], :uint32],
+    # key properties
+    rnp_key_get_creation: [%i[pointer pointer], :uint32],
+    rnp_key_get_expiration: [%i[pointer pointer], :uint32],
+    rnp_key_get_primary_grip: [%i[pointer pointer], :uint32],
   }.each do |name, signature|
     present = !ffi_libraries[0].find_function(name.to_s).nil?
     if !present
