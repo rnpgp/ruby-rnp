@@ -86,6 +86,20 @@ class Rnp
       to_callback(io.method(:write))
     end
 
+    # Write to the output.
+    #
+    # @param strings [String]
+    # @return [Integer] the number of bytes written
+    def write(*strings)
+      total_written = 0
+      pwritten = FFI::MemoryPointer.new(:size_t)
+      strings.each do |string|
+        Rnp.call_ffi(:rnp_output_write, @ptr, string, string.size, pwritten)
+        total_written += pwritten.read(:size_t)
+      end
+      total_written
+    end
+
     # Retrieve the data written. Only valid for #{to_string}.
     #
     # @return [String, nil]
