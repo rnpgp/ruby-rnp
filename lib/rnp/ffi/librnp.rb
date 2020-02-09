@@ -367,6 +367,12 @@ module LibRnp
     # features
     rnp_supports_feature: [%i[string string pointer], :uint32],
     rnp_supported_features: [%i[string pointer], :uint32],
+    # key revocation
+    rnp_key_is_revoked: [%i[pointer pointer], :uint32],
+    rnp_key_is_compromised: [%i[pointer pointer], :uint32],
+    rnp_key_is_retired: [%i[pointer pointer], :uint32],
+    rnp_key_is_superseded: [%i[pointer pointer], :uint32],
+    rnp_key_get_revocation_reason: [%i[pointer pointer], :uint32],
   }.each do |name, signature|
     present = !ffi_libraries[0].find_function(name.to_s).nil?
     if !present
