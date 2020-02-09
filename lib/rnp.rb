@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# (c) 2018 Ribose Inc.
+# (c) 2018-2020 Ribose Inc.
 
 require 'rnp/error'
 require 'rnp/input'
@@ -10,5 +10,7 @@ require 'rnp/op/sign'
 require 'rnp/op/verify'
 require 'rnp/output'
 require 'rnp/rnp'
+require 'rnp/signature'
+require 'rnp/userid'
 require 'rnp/version'
 

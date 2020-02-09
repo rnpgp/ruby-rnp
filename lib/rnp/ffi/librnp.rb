@@ -373,6 +373,23 @@ module LibRnp
     rnp_key_is_retired: [%i[pointer pointer], :uint32],
     rnp_key_is_superseded: [%i[pointer pointer], :uint32],
     rnp_key_get_revocation_reason: [%i[pointer pointer], :uint32],
+    # signatures
+    rnp_key_get_signature_count: [%i[pointer pointer], :uint32],
+    rnp_key_get_signature_at: [%i[pointer size_t pointer], :uint32],
+    rnp_signature_get_alg: [%i[pointer pointer], :uint32],
+    rnp_signature_get_hash_alg: [%i[pointer pointer], :uint32],
+    rnp_signature_get_creation: [%i[pointer pointer], :uint32],
+    rnp_signature_get_keyid: [%i[pointer pointer], :uint32],
+    rnp_signature_get_signer: [%i[pointer pointer], :uint32],
+    rnp_signature_packet_to_json: [%i[pointer uint32 pointer], :uint32],
+    rnp_signature_handle_destroy: [%i[pointer], :uint32],
+    rnp_op_verify_signature_get_handle: [%i[pointer pointer], :uint32],
+    # key uids
+    rnp_key_get_uid_handle_at: [%i[pointer size_t pointer], :uint32],
+    rnp_uid_is_revoked: [%i[pointer pointer], :uint32],
+    rnp_uid_handle_destroy: [%i[pointer], :uint32],
+    rnp_uid_get_signature_count: [%i[pointer pointer], :uint32],
+    rnp_uid_get_signature_at: [%i[pointer size_t pointer], :uint32],
   }.each do |name, signature|
     present = !ffi_libraries[0].find_function(name.to_s).nil?
     if !present
