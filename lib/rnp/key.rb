@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# (c) 2018,2019 Ribose Inc.
+# (c) 2018-2020 Ribose Inc.
 
 require 'ffi'
 
@@ -338,6 +338,41 @@ class Rnp
       pvalue = FFI::MemoryPointer.new(:bool)
       Rnp.call_ffi(:rnp_key_allows_usage, @ptr, op.to_s, pvalue)
       pvalue.read(:bool)
+    end
+
+    # Check if this has been revoked.
+    #
+    # @return [Boolean]
+    def revoked?
+      bool_property(:rnp_key_is_revoked)
+    end
+
+    # Check if this revoked key's material was compromised.
+    #
+    # @return [Boolean]
+    def compromised?
+      bool_property(:rnp_key_is_compromised)
+    end
+
+    # Check if this revoked key was retired.
+    #
+    # @return [Boolean]
+    def retired?
+      bool_property(:rnp_key_is_retired)
+    end
+
+    # Check if this revoked key was superseded by another key.
+    #
+    # @return [Boolean]
+    def superseded?
+      bool_property(:rnp_key_is_superseded)
+    end
+
+    # Retrieve the reason for revoking this key, if any.
+    #
+    # @return [String]
+    def revocation_reason
+      string_property(:rnp_key_get_revocation_reason)
     end
 
     private
