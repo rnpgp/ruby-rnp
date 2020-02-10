@@ -2,9 +2,9 @@
 
 # (c) 2020 Ribose Inc.
 
-require "json"
+require 'json'
 
-require "spec_helper"
+require 'spec_helper'
 
 describe Rnp::Output.instance_method(:write),
          skip: !LibRnp::HAVE_RNP_OUTPUT_WRITE do

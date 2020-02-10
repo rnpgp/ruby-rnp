@@ -145,10 +145,10 @@ describe 'versioning', skip: !LibRnp::HAVE_RNP_VERSION do
 end
 
 describe Rnp.method(:s2k_iterations),
-  skip: !LibRnp::HAVE_RNP_CALCULATE_ITERATIONS do
+         skip: !LibRnp::HAVE_RNP_CALCULATE_ITERATIONS do
 
   it 'raises on an invalid hash' do
-    expect{ Rnp.s2k_iterations(hash: 'Fake', msec: 10) }.to raise_error(Rnp::Error)
+    expect { Rnp.s2k_iterations(hash: 'Fake', msec: 10) }.to raise_error(Rnp::Error)
   end
 
   it 'returns the correct type' do
@@ -157,13 +157,14 @@ describe Rnp.method(:s2k_iterations),
 
   it 'returns a higher iterations count for MD5 vs SM3' do
     MSEC = 5
-    expect(Rnp.s2k_iterations(hash: 'MD5', msec: MSEC)).to be >
-      Rnp.s2k_iterations(hash: 'SM3', msec: MSEC)
+    expect(
+      Rnp.s2k_iterations(hash: 'MD5', msec: MSEC)
+    ).to be > Rnp.s2k_iterations(hash: 'SM3', msec: MSEC)
   end
 end
 
 describe Rnp.method(:enable_debug),
-  skip: !LibRnp::HAVE_RNP_ENABLE_DEBUG do
+         skip: !LibRnp::HAVE_RNP_ENABLE_DEBUG do
 
   it 'does not raise an error' do
     expect { Rnp.enable_debug }.to_not raise_error
@@ -172,7 +173,7 @@ describe Rnp.method(:enable_debug),
 end
 
 describe Rnp.method(:disable_debug),
-  skip: !LibRnp::HAVE_RNP_DISABLE_DEBUG do
+         skip: !LibRnp::HAVE_RNP_DISABLE_DEBUG do
 
   it 'does not raise an error' do
     expect { Rnp.disable_debug }.to_not raise_error
@@ -180,12 +181,14 @@ describe Rnp.method(:disable_debug),
 end
 
 describe Rnp.method(:guess_contents),
-  skip: !LibRnp::HAVE_RNP_GUESS_CONTENTS do
+         skip: !LibRnp::HAVE_RNP_GUESS_CONTENTS do
 
   it 'correctly identifies a public key' do
-    expect(Rnp.guess_contents(
-      Rnp::Input.from_path('spec/data/keyrings/gpg/pubring.gpg')
-    )).to eql 'public key'
+    expect(
+      Rnp.guess_contents(
+        Rnp::Input.from_path('spec/data/keyrings/gpg/pubring.gpg')
+      )
+    ).to eql 'public key'
   end
 
   it 'returns unknown on unknown input' do
@@ -194,7 +197,7 @@ describe Rnp.method(:guess_contents),
 end
 
 describe Rnp.method(:supports?),
-  skip: !LibRnp::HAVE_RNP_SUPPORTS_FEATURE do
+         skip: !LibRnp::HAVE_RNP_SUPPORTS_FEATURE do
 
   it 'returns a boolean' do
     value = Rnp.supports?('hash algorithm', 'SM3')
@@ -211,7 +214,7 @@ describe Rnp.method(:supports?),
 end
 
 describe Rnp.method(:supported_features),
-  skip: !LibRnp::HAVE_RNP_SUPPORTED_FEATURES do
+         skip: !LibRnp::HAVE_RNP_SUPPORTED_FEATURES do
 
   it 'raises an error on an invalid type' do
     expect { Rnp.supported_features('fake') }.to raise_error(Rnp::Error)

@@ -2,9 +2,9 @@
 
 # (c) 2020 Ribose Inc.
 
-require "json"
+require 'json'
 
-require "spec_helper"
+require 'spec_helper'
 
 describe Rnp::Key.instance_method(:signatures),
          skip: !LibRnp::HAVE_RNP_KEY_GET_SIGNATURE_AT do
@@ -12,14 +12,14 @@ describe Rnp::Key.instance_method(:signatures),
     let(:rnp) do
       rnp = Rnp.new
       rnp.load_keys(
-        format: "GPG",
-        input: Rnp::Input.from_path("spec/data/keys/ecc-p256-revoked-sub.asc"),
+        format: 'GPG',
+        input: Rnp::Input.from_path('spec/data/keys/ecc-p256-revoked-sub.asc')
       )
       rnp
     end
 
     context 'ecc-p256' do
-      let(:key) { rnp.find_key(userid: "ecc-p256") }
+      let(:key) { rnp.find_key(userid: 'ecc-p256') }
 
       it 'is not revoked' do
         expect(key.revoked?).to be false
@@ -27,7 +27,7 @@ describe Rnp::Key.instance_method(:signatures),
     end
 
     context '37E285E9E9851491' do
-      let(:key) { rnp.find_key(keyid: "37E285E9E9851491") }
+      let(:key) { rnp.find_key(keyid: '37E285E9E9851491') }
 
       it 'is revoked' do
         expect(key.revoked?).to be true
@@ -55,12 +55,12 @@ describe Rnp::Key.instance_method(:signatures),
     let(:rnp) do
       rnp = Rnp.new
       rnp.load_keys(
-        format: "GPG",
-        input: Rnp::Input.from_path("spec/data/keys/ecc-p256-revoked-key.asc"),
+        format: 'GPG',
+        input: Rnp::Input.from_path('spec/data/keys/ecc-p256-revoked-key.asc')
       )
       rnp
     end
-    let(:key) { rnp.find_key(userid: "ecc-p256") }
+    let(:key) { rnp.find_key(userid: 'ecc-p256') }
 
     it 'is revoked' do
       expect(key.revoked?).to be true

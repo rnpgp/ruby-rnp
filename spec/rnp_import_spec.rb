@@ -7,7 +7,7 @@ require 'set'
 require 'spec_helper'
 
 describe Rnp.instance_method(:import_keys),
-  skip: !LibRnp::HAVE_RNP_IMPORT_KEYS do
+         skip: !LibRnp::HAVE_RNP_IMPORT_KEYS do
   let(:rnp) { Rnp.new }
 
   it 'successfully imports keys' do
@@ -27,7 +27,7 @@ describe Rnp.instance_method(:import_keys),
 end
 
 describe Rnp.instance_method(:import_signatures),
-  skip: !LibRnp::HAVE_RNP_IMPORT_SIGNATURES do
+         skip: !LibRnp::HAVE_RNP_IMPORT_SIGNATURES do
   let(:rnp) do
     rnp = Rnp.new
     rnp.load_keys(
@@ -51,4 +51,3 @@ describe Rnp.instance_method(:import_signatures),
     expect(sig['signer fingerprint']).to eql '73edcc9119afc8e2dbbdcde50451409669ffde3c'
   end
 end
-
