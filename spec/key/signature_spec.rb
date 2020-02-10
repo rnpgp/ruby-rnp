@@ -2,9 +2,9 @@
 
 # (c) 2020 Ribose Inc.
 
-require "json"
+require 'json'
 
-require "spec_helper"
+require 'spec_helper'
 
 describe Rnp::Key.instance_method(:signatures),
          skip: !LibRnp::HAVE_RNP_KEY_GET_SIGNATURE_AT do
@@ -12,12 +12,12 @@ describe Rnp::Key.instance_method(:signatures),
     let(:rnp) do
       rnp = Rnp.new
       rnp.load_keys(
-        format: "GPG",
-        input: Rnp::Input.from_path("spec/data/keys/ecc-p384-pub.asc"),
+        format: 'GPG',
+        input: Rnp::Input.from_path('spec/data/keys/ecc-p384-pub.asc')
       )
       rnp
     end
-    let(:key) { rnp.find_key(keyid: "242A3AA5EA85F44A") }
+    let(:key) { rnp.find_key(keyid: '242A3AA5EA85F44A') }
 
     it 'has the correct signature count' do
       expect(key.signatures.size).to be 0
@@ -63,7 +63,7 @@ describe Rnp::Key.instance_method(:signatures),
           expect(sig.signer.keyid).to eql '242A3AA5EA85F44A'
         end
       end
-    end # uids
+    end
 
     describe 'subkeys' do
       let(:subkey) { key.subkeys[0] }
@@ -101,7 +101,7 @@ describe Rnp::Key.instance_method(:signatures),
         expect(json['algorithm.str']).to eql 'ECDSA'
         expect(json['hash algorithm.str']).to eql 'SHA384'
         expect(json['subpackets'][0]['type.str']).to eql 'key flags'
-        expect(json['subpackets'][0]['flags.str']).to eql ['encrypt_comm', 'encrypt_storage']
+        expect(json['subpackets'][0]['flags.str']).to eql %w[encrypt_comm encrypt_storage]
 
         expect(json['subpackets'][1]['type.str']).to eql 'issuer fingerprint'
         expect(json['subpackets'][1]['fingerprint']).to eql 'ab25cba042dd924c3acc3ed3242a3aa5ea85f44a'
@@ -119,12 +119,12 @@ describe Rnp::Key.instance_method(:signatures),
     let(:rnp) do
       rnp = Rnp.new
       rnp.load_keys(
-        format: "GPG",
-        input: Rnp::Input.from_path("spec/data/keys/ecc-p256-revoked-uid.asc"),
+        format: 'GPG',
+        input: Rnp::Input.from_path('spec/data/keys/ecc-p256-revoked-uid.asc')
       )
       rnp
     end
-    let(:key) { rnp.find_key(userid: "ecc-p256") }
+    let(:key) { rnp.find_key(userid: 'ecc-p256') }
 
     context 'userid ecc-p256' do
       let(:uid) { key.uids[0] }

@@ -61,6 +61,7 @@ class Rnp
     end
 
     private
+
     def signature_iterator
       pcount = FFI::MemoryPointer.new(:size_t)
       Rnp.call_ffi(:rnp_uid_get_signature_count, @ptr, pcount)
@@ -72,6 +73,5 @@ class Rnp
         yield Signature.new(psig) unless psig.null?
       end
     end
-  end # class
-end # class
-
+  end
+end

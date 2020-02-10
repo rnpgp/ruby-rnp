@@ -102,6 +102,5 @@ class Rnp
         LibRnp.rnp_buffer_destroy(pvalue)
       end
     end
-  end # class
-end # class
-
+  end
+end
