@@ -398,6 +398,7 @@ module LibRnp
     rnp_output_write: [%i[pointer pointer size_t pointer], :uint32],
     # import
     rnp_import_keys: [%i[pointer pointer uint32 pointer], :uint32],
+    rnp_import_signatures: [%i[pointer pointer uint32 pointer], :uint32],
   }.each do |name, signature|
     present = !ffi_libraries[0].find_function(name.to_s).nil?
     if !present
