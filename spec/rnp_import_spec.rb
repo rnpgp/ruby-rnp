@@ -26,3 +26,29 @@ describe Rnp.instance_method(:import_keys),
   end
 end
 
+describe Rnp.instance_method(:import_signatures),
+  skip: !LibRnp::HAVE_RNP_IMPORT_SIGNATURES do
+  let(:rnp) do
+    rnp = Rnp.new
+    rnp.load_keys(
+      input: Rnp::Input.from_path('spec/data/keys/alice-pub.asc'),
+      format: 'GPG'
+    )
+    rnp
+  end
+  let(:key) { rnp.find_key(userid: 'Alice <alice@rnp>') }
+
+  it 'successfully imports signatures' do
+    expect(key.signatures.size).to be 0
+    imported = rnp.import_signatures(
+      input: Rnp::Input.from_path('spec/data/keys/alice-rev.pgp')
+    )
+    expect(key.signatures.size).to be 1
+    expect(imported['sigs'].size).to be 1
+    sig = imported['sigs'][0]
+    expect(sig['public']).to eql 'new'
+    expect(sig['secret']).to eql 'unknown key'
+    expect(sig['signer fingerprint']).to eql '73edcc9119afc8e2dbbdcde50451409669ffde3c'
+  end
+end
+

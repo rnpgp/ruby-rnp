@@ -643,6 +643,21 @@ class Rnp
     end
   end
 
+  # Import signatures
+  #
+  # @param input [Input] the input to read the (OpenPGP-format) keys from
+  # @return [Hash] information on the imported keys
+  def import_signatures(input:)
+    pptr = FFI::MemoryPointer.new(:pointer)
+    Rnp.call_ffi(:rnp_import_signatures, @ptr, input.ptr, 0, pptr)
+    begin
+      presults = pptr.read_pointer
+      JSON.parse(presults.read_string) unless pptr.null?
+    ensure
+      LibRnp.rnp_buffer_destroy(presults)
+    end
+  end
+
   private
 
   KEY_PROVIDER = lambda do |provider, _rnp, _ctx, identifier_type, identifier, secret|
