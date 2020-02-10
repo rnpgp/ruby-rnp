@@ -623,6 +623,26 @@ class Rnp
     Encrypt.new(pencrypt) unless pencrypt.null?
   end
 
+  # Import keys
+  #
+  # @param input [Input] the input to read the (OpenPGP-format) keys from
+  # @param public_keys [Boolean] whether to load public keys
+  # @param secret_keys [Boolean] whether to load secret keys
+  # @return [Hash] information on the imported keys
+  def import_keys(input:, public_keys: true, secret_keys: true)
+    flags = 0
+    flags |= LibRnp::RNP_LOAD_SAVE_PUBLIC_KEYS if public_keys
+    flags |= LibRnp::RNP_LOAD_SAVE_SECRET_KEYS if secret_keys
+    pptr = FFI::MemoryPointer.new(:pointer)
+    Rnp.call_ffi(:rnp_import_keys, @ptr, input.ptr, flags, pptr)
+    begin
+      presults = pptr.read_pointer
+      JSON.parse(presults.read_string) unless pptr.null?
+    ensure
+      LibRnp.rnp_buffer_destroy(presults)
+    end
+  end
+
   private
 
   KEY_PROVIDER = lambda do |provider, _rnp, _ctx, identifier_type, identifier, secret|
