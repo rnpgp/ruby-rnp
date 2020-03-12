@@ -9,6 +9,7 @@ require 'ffi'
 require 'rnp/error'
 require 'rnp/ffi/librnp'
 require 'rnp/utils'
+require 'rnp/misc'
 
 class Rnp
   # Class used to feed data into RNP.
@@ -74,16 +75,35 @@ class Rnp
     end
 
     # @api private
-    READER = lambda do |reader, _ctx, buf, buf_len|
-      begin
-        data = reader.call(buf_len)
-        return 0 unless data
-        raise Rnp::Error, 'Read exceeded buffer size' if data.size > buf_len
-        buf.write_bytes(data)
-        return data.size
-      rescue
-        puts $ERROR_INFO
-        return -1
+    if Rnp.has?("input-reader-cb-no-ssize_t")
+      READER = lambda do |reader, _ctx, buf, buf_len, nread|
+        begin
+          data = reader.call(buf_len)
+          datasz = 0
+          if !data.nil?
+            datasz = data.size unless data.nil?
+            raise Rnp::Error, 'Read exceeded buffer size' if datasz > buf_len
+            buf.write_bytes(data) unless data.nil?
+          end
+          nread.write(:size_t, datasz)
+          return true
+        rescue
+          puts $ERROR_INFO
+          return false
+        end
+      end
+    else
+      READER = lambda do |reader, _ctx, buf, buf_len|
+        begin
+          data = reader.call(buf_len)
+          return 0 unless data
+          raise Rnp::Error, 'Read exceeded buffer size' if data.size > buf_len
+          buf.write_bytes(data)
+          return data.size
+        rescue
+          puts $ERROR_INFO
+          return -1
+        end
       end
     end
 

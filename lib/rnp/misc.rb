@@ -267,6 +267,11 @@ class Rnp
     # the commit timestamp API was added, so this isn't accurate in one case.
     "dsa-elg-grip-calc" => Rnp.version > Rnp.version("0.11.0") ||
       Rnp.commit_time >= 1538219020,
+    # Input reader callback signature was changed:
+    # ssize_t(void *app_ctx, void *buf, size_t len)
+    # bool(void *app_ctx, void *buf, size_t len, size_t *read)
+    "input-reader-cb-no-ssize_t" => Rnp.version >= Rnp.version("0.14.0") ||
+      Rnp.commit_time >= 1585833163,
   }.freeze
 
   def self.has?(feature)
