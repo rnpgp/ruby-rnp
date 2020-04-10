@@ -71,7 +71,7 @@ describe Rnp.instance_method(:encrypt) do
       'password'
     end
     decryptedf = Tempfile.new('ruby-rnp', encoding: Encoding::BINARY)
-    rnp.decrypt(input: Rnp::Input.from_io(@encryptedf), output: Rnp::Output.to_path(decryptedf.path))
+    rnp.decrypt(input: Rnp::Input.from_path(@encryptedf.path), output: Rnp::Output.to_path(decryptedf.path))
     decryptedf.open
     expect(decryptedf.read).to eql @plaintext
   end
@@ -79,7 +79,7 @@ describe Rnp.instance_method(:encrypt) do
   context "without AEAD",
           skip: !LibRnp::HAVE_RNP_DUMP_PACKETS_TO_JSON do
     it "does not contain AEAD packets" do
-      packets = Rnp.parse(input: Rnp::Input.from_io(@encryptedf))
+      packets = Rnp.parse(input: Rnp::Input.from_path(@encryptedf.path))
       expect(
         packets.select { |pkt| pkt["header"]["tag"] == 20 }.any?,
       ).to be false
@@ -243,7 +243,7 @@ describe Rnp.instance_method(:encrypt_and_sign) do
     end
     decryptedf = Tempfile.new("ruby-rnp", encoding: Encoding::BINARY)
     rnp.decrypt(
-      input: Rnp::Input.from_io(@encryptedf),
+      input: Rnp::Input.from_path(@encryptedf.path),
       output: Rnp::Output.to_path(decryptedf.path),
     )
     decryptedf.open
