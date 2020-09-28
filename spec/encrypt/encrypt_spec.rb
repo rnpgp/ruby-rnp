@@ -135,8 +135,8 @@ describe Rnp::Encrypt do
                     input: Rnp::Input.from_path('spec/data/keyrings/gpg/secring.gpg'))
       rnp.password_provider = lambda do |key, _reason|
         return nil unless key
-        # this is the encrypting subkey for user2
-        expect(key.keyid).to eql '54505A936A4A970E'
+        # this is one of the encrypting subkeys for user2
+        expect(["54505A936A4A970E", "326EF111425D14A5"]).to include(key.keyid)
         return 'password'
       end
       expect(rnp.decrypt(input: Rnp::Input.from_string(@encrypted))).to eql plaintext

@@ -40,7 +40,7 @@ describe Rnp.instance_method(:encrypt) do
     rnp = Rnp.new
     rnp.key_provider = lambda do |idtype, id, secret|
       expect(idtype).to eql 'keyid'
-      expect(id).to eql '1ED63EE56FADC34D'
+      expect(["1ED63EE56FADC34D", "8A05B89FAD5ADED1"]).to include(id)
       expect(secret).to eql true
       rnp.load_keys(format: 'GPG',
                     input: Rnp::Input.from_path('spec/data/keyrings/gpg/secring.gpg'))
@@ -66,7 +66,7 @@ describe Rnp.instance_method(:encrypt) do
     rnp.load_keys(format: 'GPG',
                   input: Rnp::Input.from_path('spec/data/keyrings/gpg/secring.gpg'))
     rnp.password_provider = lambda do |key, reason|
-      expect(key.keyid).to eql '1ED63EE56FADC34D'
+      expect(["1ED63EE56FADC34D", "8A05B89FAD5ADED1"]).to include(key.keyid)
       expect(reason).to eql 'decrypt'
       'password'
     end
@@ -199,7 +199,7 @@ describe Rnp.instance_method(:encrypt_and_sign) do
     rnp = Rnp.new
     rnp.key_provider = lambda do |idtype, id, secret|
       expect(idtype).to eql "keyid"
-      expect(id).to eql "1ED63EE56FADC34D"
+      expect(["1ED63EE56FADC34D", "8A05B89FAD5ADED1"]).to include(id)
       expect(secret).to eql true
       rnp.load_keys(
         format: "GPG",
@@ -237,7 +237,7 @@ describe Rnp.instance_method(:encrypt_and_sign) do
       input: Rnp::Input.from_path("spec/data/keyrings/gpg/secring.gpg"),
     )
     rnp.password_provider = lambda do |key, reason|
-      expect(key.keyid).to eql "1ED63EE56FADC34D"
+      expect(["1ED63EE56FADC34D", "8A05B89FAD5ADED1"]).to include(key.keyid)
       expect(reason).to eql "decrypt"
       "password"
     end
