@@ -272,6 +272,10 @@ class Rnp
     # bool(void *app_ctx, void *buf, size_t len, size_t *read)
     "input-reader-cb-no-ssize_t" => Rnp.version >= Rnp.version("0.14.0") ||
       Rnp.commit_time >= 1585833163,
+    # Behavior on primary userid retrieveing was changed:
+    # Now userid is not considered as primary if it is revoked/expired/etc.
+    "primary-userid-must-be-valid" => Rnp.version >= Rnp.version("0.14.0") ||
+      Rnp.commit_time >= 1605875599,
   }.freeze
 
   def self.has?(feature)
