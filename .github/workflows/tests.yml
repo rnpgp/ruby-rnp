@@ -18,7 +18,7 @@ jobs:
         rnp: [master, v0.13.0]
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
 
     - name: Set environment
       run: |
@@ -31,7 +31,7 @@ jobs:
 
     - name: Cache
       id: cache
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       with:
         path: ${{ env.CACHE_DIR }}
         key: ${{ matrix.os }}-botan-${{ matrix.botan }}-rnp-${{ matrix.rnp }}-${{ hashFiles('ci/**') }}-${{ hashFiles('.github/workflows/**') }}
@@ -67,7 +67,7 @@ jobs:
         make -j${MAKE_PARALLEL} install
 
     - name: Set up Ruby
-      uses: eregon/use-ruby-action@v1.29.0
+      uses: actions/setup-ruby@v1
       with:
         ruby-version: ${{ matrix.ruby }}
 
