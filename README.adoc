@@ -1,6 +1,6 @@
 = Ruby RNP bindings
 
-image:https://img.shields.io/travis/rnpgp/ruby-rnp/master.svg["Build Status", link="https://travis-ci.org/rnpgp/ruby-rnp"]
+image:https://github.com/rnpgp/ruby-rnp/actions/workflows/tests.yml/badge.svg["Build Status", link="https://github.com/rnpgp/ruby-rnp/actions/workflows/tests.yml"]
 image:https://codecov.io/github/rnpgp/ruby-rnp/coverage.svg["Code Coverage", link="https://codecov.io/github/rnpgp/ruby-rnp?branch=master"]
 
 The `rnp` gem provides Ruby bindings to the
