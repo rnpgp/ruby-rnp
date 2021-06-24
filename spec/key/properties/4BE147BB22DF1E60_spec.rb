@@ -47,7 +47,9 @@ describe Rnp::Key do
     end
 
     it 'raises an error when requesting primary userid' do
-      if Rnp.has?("primary-userid-must-be-valid")
+      if Rnp.has?("relax-userid-validity-checks")
+        expect(key.primary_userid).to eql "test1"
+      elsif Rnp.has?("primary-userid-must-be-valid")
         expect { key.primary_userid }.to raise_error(Rnp::Error)
       else
         expect(key.primary_userid).to eql "test1"

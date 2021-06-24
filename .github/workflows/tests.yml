@@ -14,8 +14,8 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
         ruby: [2.5, 2.6, 2.7]
-        botan: [2.12.1, 2.17.2]
-        rnp: [master, v0.13.0]
+        botan: [2.14.0, 2.17.2]
+        rnp: [master, v0.15.1]
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     steps:

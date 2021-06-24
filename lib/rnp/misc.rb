@@ -276,6 +276,10 @@ class Rnp
     # Now userid is not considered as primary if it is revoked/expired/etc.
     "primary-userid-must-be-valid" => Rnp.version >= Rnp.version("0.14.0") ||
       Rnp.commit_time >= 1605875599,
+    # Behavior was changed in v0.15.2 (issue #1509):
+    # userid is valid even if key expiration in userid expiration expires key.
+    "relax-userid-validity-checks" => Rnp.version >= Rnp.version("0.15.2") ||
+      Rnp.commit_time >= 1624526708,
   }.freeze
 
   def self.has?(feature)
