@@ -1,25 +1,19 @@
-name: Tests
+name: tests
 
 on:
   pull_request:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   test:
-    env:
-      MAKE_PARALLEL: 2
-      RNP_PATH: rnp
-      USE_STATIC_DEPENDENCIES: 'yes'
-      SKIPT_TESTS: 1
     strategy:
       matrix:
         os: [ ubuntu-latest, macos-latest ]
-        ruby: [ 2.5, 2.6, 2.7 ]
+        ruby: [ 2.5, 2.6, 2.7, 3.0 ]
         rnp: [ master, v0.15.1 ]
     runs-on: ${{ matrix.os }}
-    continue-on-error: true
     steps:
     - uses: actions/checkout@v2
 
@@ -28,33 +22,12 @@ jobs:
         ruby-version: ${{ matrix.ruby }}
         bundler-cache: true
 
-    - uses: actions/checkout@v2
+    - run: bundle exec rake gem:native:${{ matrix.platform }}
+
+    - if: matrix.platform != 'any'
+      uses: metanorma/metanorma-build-scripts/native-deps-action@master
       with:
-        repository: rnpgp/rnp
-        ref: ${{ matrix.rnp }}
-        path: ${{ env.RNP_PATH }}
-
-    - run: . ${{ env.RNP_PATH }}/ci/gha/setup-env.inc.sh
-
-    - run: ci/install_noncacheable_dependencies.sh
-      working-directory: ${{ env.RNP_PATH }}
-
-    - run: echo "RNP_REF=$(git rev-parse HEAD)" >> $GITHUB_ENV
-      working-directory: ${{ env.RNP_PATH }}
-
-    - uses: actions/cache@v2
-      id: cache
-      with:
-        path: ${{ env.CACHE_DIR }}
-        key: rnp-${{ matrix.RNP_REF }}-${{ hashFiles('.github/workflows/**') }}
-
-    - if: steps.cache.outputs.cache-hit != 'true'
-      run: ci/install_cacheable_dependencies.sh botan jsonc
-      working-directory: ${{ env.RNP_PATH }}
-
-    - run: ci/run.sh
-      working-directory: ${{ env.RNP_PATH }}
-
-    - run: cp rnp-install/lib/librnp.* lib/rnp/ffi/
+        libname: librnp
+        directory: lib/rnp/ffi
 
     - run: bundle exec rake

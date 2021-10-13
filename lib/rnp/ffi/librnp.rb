@@ -9,7 +9,10 @@ require 'rnp/error'
 # @api private
 module LibRnp
   extend FFI::Library
-  ffi_lib %w[rnp-0 rnp]
+
+  LOCAL_LIBRNP = File.join(File.dirname(__FILE__), FFI.map_library_name("rnp"))
+
+  ffi_lib [LOCAL_LIBRNP, "rnp-0", "rnp"]
 
   # some newer APIs that may not be present
   {
