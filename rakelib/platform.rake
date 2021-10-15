@@ -6,9 +6,31 @@ require "tmpdir"
 require "rake/clean"
 require "rubygems/package_task"
 
+def libname
+  require "rbconfig"
+  case RbConfig::CONFIG["host_os"]
+  when /mswin|windows/i
+    "librnp.dll"
+  when /linux|arch/i
+    "librnp.so"
+  when /darwin/i
+    "librnp.dylib"
+  else
+    raise RuntimeError "Unsupported Host OS"
+  end
+end
+
+workspace = File.dirname(File.dirname(__FILE__))
+librnp_path = File.join(workspace, "tmp", "rnp")
+
 desc "Build install-compilation gem"
 task "gem:native:any" do
   sh "rake platform:any gem"
+end
+
+desc "Build install-compilation gem"
+task "gem:native" do
+  sh "rake platform:native gem"
 end
 
 desc "Define the gem task to build on any platform (compile on install)"
@@ -18,52 +40,31 @@ task "platform:any" do
   task.define
 end
 
-platforms = [
-  ["x86-mingw32", "i686-w64-mingw32", "librnp-0.dll"],
-  ["x64-mingw32", "x86_64-w64-mingw32", "librnp-0.dll"],
-  ["x86-linux", "i686-linux-gnu", "librnp-0.so"],
-  ["x86_64-linux", "x86_64-linux-gnu", "librnp-0.so"],
-  ["x86_64-darwin", "x86_64-darwin", "librnp.dylib"],
-  ["arm64-darwin", "arm64-darwin", "librnp.dylib"],
-]
+desc "Define the gem task to build the platform gem (binary gem)"
+task "platform:native" => [:compile] do
+  platform = Gem::Platform.new(RUBY_PLATFORM)
+  platform.version = nil
+  spec = Gem::Specification::load("rnp.gemspec").dup
+  spec.platform = platform
+  spec.files += ["lib/rnp/ffi/#{libname}"]
+  spec.extensions = []
 
-workspace = File.dirname(File.dirname(__FILE__))
-librnp_path = File.join(workspace, "tmp", "rnp")
-
-platforms.each do |platform, host, lib|
-  desc "Build pre-compiled gem for the #{platform} platform"
-  task "gem:native:#{platform}" do
-    sh "rake compile[#{host},#{lib}] platform:#{platform} gem"
-  end
-
-  desc "Define the gem task to build on the #{platform} platform (binary gem)"
-  task "platform:#{platform}" do
-    spec = Gem::Specification::load("rnp.gemspec").dup
-    spec.platform = Gem::Platform.new(platform)
-    spec.files += ["lib/rnp/ffi/#{lib}"]
-    spec.extensions = []
-
-    task = Gem::PackageTask.new(spec)
-    task.define
-  end
+  task = Gem::PackageTask.new(spec)
+  task.define
 end
 
 desc "Git clone rnp native library"
-task :rnp_git, [:rev] do |_t, args|
-  rev = args[:rev] || "master"
+task :rnp_git do
+  rev = ENV["RNP_VERSION"] || "master"
   unless Dir.exist?(librnp_path)
     system("git clone https://github.com/rnpgp/rnp.git -b #{rev} #{librnp_path}")
   end
 
-  Dir.chdir(librnp_path) {
-    system("git checkout #{rev}")
-  }
+  Dir.chdir(librnp_path) { system("git checkout #{rev}") }
 end
 
-desc "Compile binary for the target host"
-task :compile, [:host, :lib] => [:rnp_git] do |_t, args|
-  workspace = File.dirname(File.dirname(__FILE__))
-
+desc "Compile binary"
+task :compile => [:rnp_git] do
   Dir.mktmpdir do |tmp|
     cache_dir = "installs"
     rnp_install = File.join(workspace, "tmp", "rnp-install")
@@ -84,15 +85,14 @@ task :compile, [:host, :lib] => [:rnp_git] do |_t, args|
     FileUtils.ln_s(cache_path, tmp)
 
     deps = "botan jsonc"
-    Dir.chdir(librnp_path) {
+    Dir.chdir(librnp_path) do
       system(build_env, "ci/install_cacheable_dependencies.sh #{deps}")
       system(build_env, "ci/run.sh")
-    }
+    end
 
-    FileUtils.cp(File.join(rnp_install, "lib", args[:lib]), "lib/rnp/ffi/")
+    FileUtils.cp(File.join(rnp_install, "lib", libname), "lib/rnp/ffi/")
   end
 end
 
-CLEAN.include("lib/rnp/ffi/librnp-0.dll",
-              "lib/rnp/ffi/librnp.dylib",
-              "lib/rnp/ffi/librnp-0.so")
+CLOBBER.include("pkg")
+CLEAN.include("lib/rnp/ffi/#{libname}")

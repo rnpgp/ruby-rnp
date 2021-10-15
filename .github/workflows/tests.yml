@@ -7,27 +7,55 @@ on:
       - main
 
 jobs:
-  test:
+  compile:
     strategy:
+      fail-fast: false
       matrix:
-        os: [ ubuntu-latest, macos-latest ]
-        ruby: [ 2.5, 2.6, 2.7, 3.0 ]
-        rnp: [ master, v0.15.1 ]
+        os: [ubuntu-latest, macos-latest]
+        rnp: [master, v0.15.1]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v2
 
     - uses: ruby/setup-ruby@v1
       with:
-        ruby-version: ${{ matrix.ruby }}
+        ruby-version: 2.5
         bundler-cache: true
 
-    - run: bundle exec rake gem:native:${{ matrix.platform }}
+    - run: bundle exec rake gem:native
+      env:
+        RNP_VERSION: ${{ matrix.rnp }}
 
-    - if: matrix.platform != 'any'
-      uses: metanorma/metanorma-build-scripts/native-deps-action@master
+    - uses: metanorma/metanorma-build-scripts/native-deps-action@master
       with:
         libname: librnp
         directory: lib/rnp/ffi
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: ffi-lib-${{ matrix.os }}-${{ matrix.rnp }}
+        path: lib/rnp/ffi/librnp*
+
+  test:
+    needs: [compile]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        rnp: [master, v0.15.1]
+        ruby: [2.5, 2.6, 2.7, 3.0]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: actions/download-artifact@v2
+      with:
+        name: ffi-lib-${{ matrix.os }}-${{ matrix.rnp }}
+        path: lib/rnp/ffi/
+
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby }}
+        bundler-cache: true
 
     - run: bundle exec rake

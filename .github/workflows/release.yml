@@ -7,66 +7,59 @@ on:
 
 jobs:
   pack:
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        include:
-          - os: ubuntu-latest
-            platform: x86-linux
-          - os: ubuntu-latest
-            platform: x86_64-linux
-          - os: ubuntu-latest
-            platform: any
-          - os: macos-latest
-            platform: x86_64-darwin
-          - os: macos-latest
-            platform: arm64-darwin
-          - os: windows-latest
-            platform: x64-mingw32
-          - os: windows-latest
-            platform: x86-mingw32
+        os: [ubuntu-latest, macos-latest]
+        rnp: [ v0.15.1 ]
     steps:
-      - uses: actions/checkout@v1
+    - uses: actions/checkout@v1
 
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '2.5'
-          bundler-cache: true
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '2.5'
+        bundler-cache: true
 
-      - run: bundle exec rake gem:native:${{ matrix.platform }}
+    - run: bundle exec rake gem:native
 
-      - uses: actions/upload-artifact@v2
-        with:
-          name: pkg
-          path: pkg/*.gem
+    - uses: metanorma/metanorma-build-scripts/native-deps-action@master
+      with:
+        libname: librnp
+        directory: lib/rnp/ffi
+
+    - run: bundle exec rake
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: pkg
+        path: pkg/*.gem
 
   release:
     runs-on: ubuntu-latest
     needs: [pack]
     steps:
-      - uses: actions/download-artifact@v2
-        with:
-          name: pkg
-          path: pkg
+    - uses: actions/download-artifact@v2
+      with:
+        name: pkg
+        path: pkg
 
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '2.6'
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '2.5'
 
-      - run: ls -l pkg/
+    - run: ls -l pkg/
 
-      # - name: Publish to rubygems.org
-      #   env:
-      #     RUBYGEMS_API_KEY: ${{secrets.FONTIST_CI_RUBYGEMS_API_KEY}}
-      #   run: |
-      #     mkdir -p ~/.gem
-      #     touch ~/.gem/credentials
-      #     cat > ~/.gem/credentials << EOF
-      #     ---
-      #     :rubygems_api_key: ${RUBYGEMS_API_KEY}
-      #     EOF
-      #     chmod 0600 ~/.gem/credentials
-      #     gem signin
-      #     for gem in pkg/*.gem; do gem push -V $gem; done
+    - name: Publish to rubygems.org
+      env:
+        RUBYGEMS_API_KEY: ${{secrets.RNP_RUBYGEMS_API_KEY}}
+      run: |
+        mkdir -p ~/.gem
+        touch ~/.gem/credentials
+        cat > ~/.gem/credentials << EOF
+        ---
+        :rubygems_api_key: ${RUBYGEMS_API_KEY}
+        EOF
+        chmod 0600 ~/.gem/credentials
+        gem signin
+        for gem in pkg/*.gem; do gem push -V $gem; done
