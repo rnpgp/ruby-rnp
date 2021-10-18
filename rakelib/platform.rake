@@ -77,7 +77,8 @@ task :compile => [:rnp_git] do
       "JSONC_INSTALL" => File.join(tmp, "jsonc-install"),
       "RNP_INSTALL" => rnp_install,
       "USE_STATIC_DEPENDENCIES" => "yes",
-      "SKIP_TESTS" => "1"
+      "SKIP_TESTS" => "1",
+      "DOWNLOAD_RUBYRNP" => "OFF"
     }
 
     cache_path = File.join(workspace, "tmp", cache_dir)
