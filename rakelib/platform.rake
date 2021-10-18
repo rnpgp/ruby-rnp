@@ -87,6 +87,7 @@ task compile: [:rnp_git] do
 
     deps = "botan jsonc"
     Dir.chdir(librnp_path) do
+      system(build_env, "ci/install_noncacheable_dependencies.sh")
       system(build_env, "ci/install_cacheable_dependencies.sh #{deps}")
       system(build_env, "ci/run.sh")
     end
