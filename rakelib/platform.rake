@@ -20,6 +20,20 @@ def libname
   end
 end
 
+def replace_in_file(file, old, new)
+  content = nil
+  open(file, 'r') {|f| content = f.read}
+  open(file, 'w') {|f| f.puts content.gsub(old, new)}
+end
+
+def apply_workadound_1654
+  # https://github.com/rnpgp/rnp/issues/1654 workaround
+  replace_in_file("ci/main.sh", '[ -v "GTEST_SOURCES" ]', '[ -n "${GTEST_SOURCES:-}" ]')
+  replace_in_file("ci/main.sh", '[ -v "DOWNLOAD_GTEST" ]', '[ -n "${DOWNLOAD_GTEST:-}" ]')
+  replace_in_file("ci/main.sh", '[ -v "DOWNLOAD_RUBYRNP" ]', '[ -n "${DOWNLOAD_RUBYRNP:-}" ]')
+  replace_in_file("ci/main.sh", '[ -v "CRYPTO_BACKEND" ]', '[ -n "${CRYPTO_BACKEND:-}" ]')
+end
+
 workspace = File.dirname(File.dirname(__FILE__))
 librnp_path = File.join(workspace, "tmp", "rnp")
 
@@ -87,6 +101,8 @@ task compile: [:rnp_git] do
 
     deps = "botan jsonc"
     Dir.chdir(librnp_path) do
+      apply_workadound_1654
+
       system(build_env, "ci/install_noncacheable_dependencies.sh")
       system(build_env, "ci/install_cacheable_dependencies.sh #{deps}")
       system(build_env, "ci/run.sh")
