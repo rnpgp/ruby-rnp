@@ -22,16 +22,20 @@ end
 
 def replace_in_file(file, old, new)
   content = nil
-  open(file, 'r') {|f| content = f.read}
-  open(file, 'w') {|f| f.puts content.gsub(old, new)}
+  File.open(file, "r") {|f| content = f.read}
+  File.open(file, "w") {|f| f.puts content.gsub(old, new)}
 end
 
 def apply_workadound_1654
   # https://github.com/rnpgp/rnp/issues/1654 workaround
-  replace_in_file("ci/main.sh", '[ -v "GTEST_SOURCES" ]', '[ -n "${GTEST_SOURCES:-}" ]')
-  replace_in_file("ci/main.sh", '[ -v "DOWNLOAD_GTEST" ]', '[ -n "${DOWNLOAD_GTEST:-}" ]')
-  replace_in_file("ci/main.sh", '[ -v "DOWNLOAD_RUBYRNP" ]', '[ -n "${DOWNLOAD_RUBYRNP:-}" ]')
-  replace_in_file("ci/main.sh", '[ -v "CRYPTO_BACKEND" ]', '[ -n "${CRYPTO_BACKEND:-}" ]')
+  replace_in_file("ci/main.sh", '[ -v "GTEST_SOURCES" ]',
+                  '[ -n "${GTEST_SOURCES:-}" ]')
+  replace_in_file("ci/main.sh", '[ -v "DOWNLOAD_GTEST" ]',
+                  '[ -n "${DOWNLOAD_GTEST:-}" ]')
+  replace_in_file("ci/main.sh", '[ -v "DOWNLOAD_RUBYRNP" ]',
+                  '[ -n "${DOWNLOAD_RUBYRNP:-}" ]')
+  replace_in_file("ci/main.sh", '[ -v "CRYPTO_BACKEND" ]',
+                  '[ -n "${CRYPTO_BACKEND:-}" ]')
 end
 
 workspace = File.dirname(File.dirname(__FILE__))
@@ -99,12 +103,11 @@ task compile: [:rnp_git] do
     FileUtils.mkdir_p(cache_path)
     FileUtils.ln_s(cache_path, tmp)
 
-    deps = "botan jsonc"
     Dir.chdir(librnp_path) do
       apply_workadound_1654
 
       system(build_env, "ci/install_noncacheable_dependencies.sh")
-      system(build_env, "ci/install_cacheable_dependencies.sh #{deps}")
+      system(build_env, "ci/install_cacheable_dependencies.sh botan jsonc")
       system(build_env, "ci/run.sh")
     end
 
