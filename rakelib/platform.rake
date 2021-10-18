@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 require "fileutils"
+require "rbconfig"
 require "tmpdir"
 
 require "rake/clean"
 require "rubygems/package_task"
 
 def libname
-  require "rbconfig"
   case RbConfig::CONFIG["host_os"]
   when /mswin|windows/i
     "librnp.dll"
@@ -57,14 +57,14 @@ desc "Git clone rnp native library"
 task :rnp_git do
   rev = ENV["RNP_VERSION"] || "master"
   unless Dir.exist?(librnp_path)
-    system("git clone https://github.com/rnpgp/rnp.git -b #{rev} #{librnp_path}")
+    system("git clone https://github.com/rnpgp/rnp -b #{rev} #{librnp_path}")
   end
 
   Dir.chdir(librnp_path) { system("git checkout #{rev}") }
 end
 
 desc "Compile binary"
-task :compile => [:rnp_git] do
+task compile: [:rnp_git] do
   Dir.mktmpdir do |tmp|
     cache_dir = "installs"
     rnp_install = File.join(workspace, "tmp", "rnp-install")
@@ -78,7 +78,7 @@ task :compile => [:rnp_git] do
       "RNP_INSTALL" => rnp_install,
       "USE_STATIC_DEPENDENCIES" => "yes",
       "SKIP_TESTS" => "1",
-      "DOWNLOAD_RUBYRNP" => "OFF"
+      "DOWNLOAD_RUBYRNP" => "OFF",
     }
 
     cache_path = File.join(workspace, "tmp", cache_dir)

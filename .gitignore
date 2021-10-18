@@ -1,5 +1,6 @@
 /.ruby-gemset
 /.ruby-version
+/.rubocop-https*
 /.bundle/
 /.yardoc
 /Gemfile.lock
