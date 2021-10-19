@@ -17,6 +17,7 @@ class Rnp
     # @api private
     def initialize(ptr)
       raise Rnp::Error, "NULL pointer" if ptr.null?
+
       @ptr = FFI::AutoPointer.new(ptr, self.class.method(:destroy))
     end
 
@@ -31,35 +32,26 @@ class Rnp
 
     # Set a group of options.
     #
-    # @param bits (see #bits=)
-    # @param qbits (see #qbits=)
-    # @param curve (see #curve=)
-    # @param hash (see #hash=)
-    # @param s2k_hash (see #s2k_hash=)
-    # @param s2k_iterations (see #s2k_iterations=)
-    # @param s2k_cipher (see #s2k_cipher=)
-    # @param password (see #password=)
-    # @param protection_mode (see #protection_mode=)
-    # @param lifetime (see #lifetime=)
-    # @param userid (see #userid=)
-    # @param usage (see #usage=)
-    def options=(bits: nil, qbits: nil, curve: nil, hash: nil,
-                 s2k_hash: nil, s2k_iterations: nil, s2k_cipher: nil,
-                 password: nil, protection_mode: nil, lifetime: nil,
-                 userid: nil, usage: nil, preferences: nil)
-      self.bits = bits unless bits.nil?
-      self.qbits = qbits unless qbits.nil?
-      self.curve = curve unless curve.nil?
-      self.hash = hash unless hash.nil?
-      self.s2k_hash = s2k_hash unless s2k_hash.nil?
-      self.s2k_iterations = s2k_iterations unless s2k_iterations.nil?
-      self.s2k_cipher = s2k_cipher unless s2k_cipher.nil?
-      self.password = password unless password.nil?
-      self.protection_mode = protection_mode unless protection_mode.nil?
-      self.lifetime = lifetime unless lifetime.nil?
-      self.userid = userid unless userid.nil?
-      self.usage = usage unless usage.nil?
-      self.preferences = preferences unless preferences.nil?
+    # @param [Hash] opts set several options in one place
+    # @option opts [Integer] :bits (see #bits=)
+    # @option opts [Integer] :qbits (see #qbits=)
+    # @option opts [Integer] :curve (see #curve=)
+    # @option opts [String] :hash (see #hash=)
+    # @option opts [String] :s2k_hash (see #s2k_hash=)
+    # @option opts [Integer] :s2k_iterations (see #s2k_iterations=)
+    # @option opts [String] :s2k_cipher (see #s2k_cipher=)
+    # @option opts [String] :password (see #password=)
+    # @option opts [String] :protection_mode (see #protection_mode=)
+    # @option opts [Integer] :lifetime (see #lifetime=)
+    # @option opts [String] :userid (see #userid=)
+    # @option opts [String] :usage (see #usage=)
+    def options=(opts)
+      %i{bits qbits curve hash s2k_hash s2k_iterations
+         s2k_cipher password protection_mode lifetime
+         userid usage preferences}.each do |prop|
+        value = opts[prop]
+        send("#{prop}=", value) unless value.nil?
+      end
     end
 
     # Set the bit length of the key.
@@ -162,26 +154,22 @@ class Rnp
     end
 
     # Set the preferences for the generated key.
-    #
-    # @param hashes [Array<String>, Array<Symbol>]
-    # @param compression [Array<String>, Array<Symbol>]
-    # @param ciphers [Array<String>, Array<Symbol>]
-    # @param key_server [String]
-    def preferences=(hashes: nil, compression: nil, ciphers: nil,
-                     key_server: nil)
-      Rnp.call_ffi(:rnp_op_generate_clear_pref_hashes, @ptr)
-      Rnp.call_ffi(:rnp_op_generate_clear_pref_compression, @ptr)
-      Rnp.call_ffi(:rnp_op_generate_clear_pref_ciphers, @ptr)
-      hashes&.each do |pref|
-        Rnp.call_ffi(:rnp_op_generate_add_pref_hash, @ptr, pref.to_s)
+
+    # @param [Hash] prefs set several preferences in one place
+    # @option prefs [Array<String>, Array<Symbol>] :hashes
+    # @option prefs [Array<String>, Array<Symbol>] :compression
+    # @option prefs [Array<String>, Array<Symbol>] :ciphers
+    # @option prefs [String] :key_server
+    def preferences=(prefs)
+      %i{hashes compression ciphers}.each do |param|
+        Rnp.call_ffi(pref_ffi_call(param, clear: true), @ptr)
+        prefs[param].each do |pref|
+          Rnp.call_ffi(pref_ffi_call(param, add: true),
+                       @ptr, pref.to_s)
+        end
       end
-      compression&.each do |pref|
-        Rnp.call_ffi(:rnp_op_generate_add_pref_compression, @ptr, pref.to_s)
-      end
-      ciphers&.each do |pref|
-        Rnp.call_ffi(:rnp_op_generate_add_pref_cipher, @ptr, pref.to_s)
-      end
-      Rnp.call_ffi(:rnp_op_generate_set_pref_keyserver, @ptr, key_server)
+      Rnp.call_ffi(:rnp_op_generate_set_pref_keyserver, @ptr,
+                   prefs[:key_server])
     end
 
     # Execute the operation.
@@ -204,6 +192,20 @@ class Rnp
       Rnp.call_ffi(:rnp_op_generate_get_key, @ptr, pptr)
       pkey = pptr.read_pointer
       Key.new(pkey) unless pkey.null?
+    end
+
+    # @api private
+    private
+
+    def pref_ffi_call(param, add: false, clear: false)
+      if add
+        fn = { hashes: :hash, ciphers: :cipher }.fetch(param, param)
+        "rnp_op_generate_add_pref_#{fn}".to_sym
+      elsif clear
+        "rnp_op_generate_clear_pref_#{param}".to_sym
+      else
+        raise ArgumentError, "add or clear must be passed"
+      end
     end
   end
 end
