@@ -1,5 +1,6 @@
 /.ruby-gemset
 /.ruby-version
+/.rubocop-https*
 /.bundle/
 /.yardoc
 /Gemfile.lock
@@ -12,3 +13,8 @@
 
 # rspec failure tracking
 .rspec_status
+
+# native libs
+/lib/rnp/ffi/*.dll
+/lib/rnp/ffi/*.dylib
+/lib/rnp/ffi/*.so

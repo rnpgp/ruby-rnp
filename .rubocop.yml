@@ -1,0 +1,8 @@
+inherit_from:
+  - https://raw.githubusercontent.com/riboseinc/oss-guides/master/ci/rubocop.yml
+
+# local repo-specific modifications
+# ...
+
+AllCops:
+  TargetRubyVersion: 2.5

@@ -1,0 +1,66 @@
+name: release
+
+on:
+  push:
+    tags: [ v* ]
+  workflow_dispatch:
+
+jobs:
+  pack:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        rnp: [ v0.15.1 ]
+    steps:
+    - uses: actions/checkout@v1
+
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '2.5'
+        bundler-cache: true
+
+    - run: bundle exec rake gem:native
+    - run: bundle exec rake gem
+
+    - uses: metanorma/metanorma-build-scripts/native-deps-action@master
+      with:
+        libname: librnp
+        directory: lib/rnp/ffi
+
+    - run: bundle exec rake
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: pkg
+        path: pkg/*.gem
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [pack]
+    steps:
+    - uses: actions/download-artifact@v2
+      with:
+        name: pkg
+        path: pkg
+
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '2.5'
+
+    - run: ls -l pkg/
+
+    - name: Publish to rubygems.org
+      env:
+        RUBYGEMS_API_KEY: ${{secrets.RNP_RUBYGEMS_API_KEY}}
+      run: |
+        mkdir -p ~/.gem
+        touch ~/.gem/credentials
+        cat > ~/.gem/credentials << EOF
+        ---
+        :rubygems_api_key: ${RUBYGEMS_API_KEY}
+        EOF
+        chmod 0600 ~/.gem/credentials
+        gem signin
+        for gem in pkg/*.gem; do gem push -V $gem; done
