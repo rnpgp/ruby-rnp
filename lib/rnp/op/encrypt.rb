@@ -43,19 +43,18 @@ class Rnp
     # Add a signer.
     #
     # @param signer [Key] the signer
-    # @param hash (see #hash=)
-    # @param creation_time (see #creation_time=)
-    # @param expiration_time (see #expiration_time=)
+    # @param [Hash] opts set several options in one place
+    # @option opts [String] :hash (see #hash=)
+    # @option opts [Time] :creation_time (see #creation_time=)
+    # @option opts [Time] :expiration_time (see #expiration_time=)
     # @return [self]
-    def add_signer(signer, hash: nil, creation_time: nil, expiration_time: nil)
+    def add_signer(signer, opts = {})
       pptr = FFI::MemoryPointer.new(:pointer)
       Rnp.call_ffi(:rnp_op_encrypt_add_signature, @ptr, signer.ptr, pptr)
       psig = pptr.read_pointer
       Sign.set_signature_options(
         psig,
-        hash: hash,
-        creation_time: creation_time,
-        expiration_time: expiration_time
+        **opts,
       )
       self
     end
@@ -88,21 +87,19 @@ class Rnp
     # @note Some options are related to signatures and will have no effect if
     # there are no signers.
     #
-    # @param armored (see #armored=)
-    # @param compression (see #compression=)
-    # @param cipher (see #cipher=)
-    # @param hash (see #hash=)
-    # @param creation_time (see #creation_time=)
-    # @param expiration_time (see #expiration_time=)
-    def options=(armored: nil, compression: nil, cipher: nil, aead: nil,
-                 hash: nil, creation_time: nil, expiration_time: nil)
-      self.armored = armored unless armored.nil?
-      self.compression = compression unless compression.nil?
-      self.cipher = cipher unless cipher.nil?
-      self.aead = aead unless aead.nil?
-      self.hash = hash unless hash.nil?
-      self.creation_time = creation_time unless creation_time.nil?
-      self.expiration_time = expiration_time unless expiration_time.nil?
+    # @param [Hash] opts set several options in one place
+    # @option opts [Boolean] :armored (see #armored=)
+    # @option opts [String] :compression (see #compression=)
+    # @option opts [String] :cipher (see #cipher=)
+    # @option opts [String] :hash (see #hash=)
+    # @option opts [Time] :creation_time (see #creation_time=)
+    # @option opts [Time] :expiration_time (see #expiration_time=)
+    def options=(opts)
+      %i{armored compression cipher aead hash creation_time
+         expiration_time}.each do |prop|
+        value = opts[prop]
+        send("#{prop}=", value) unless value.nil?
+      end
     end
 
     # Set whether the output will be ASCII-armored.
@@ -186,4 +183,3 @@ class Rnp
     end
   end # class
 end # class
-
