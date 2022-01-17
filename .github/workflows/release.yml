@@ -12,7 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
-        rnp: [ v0.15.1 ]
+        rnp: [ v0.15.2 ]
     steps:
     - uses: actions/checkout@v1
 
@@ -24,7 +24,7 @@ jobs:
     - run: bundle exec rake gem:native
     - run: bundle exec rake gem
 
-    - uses: metanorma/metanorma-build-scripts/native-deps-action@master
+    - uses: metanorma/metanorma-build-scripts/native-deps-action@main
       with:
         libname: librnp
         directory: lib/rnp/ffi
