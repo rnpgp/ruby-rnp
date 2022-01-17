@@ -70,7 +70,7 @@ describe Rnp::Verify do
 
     expect(sigs[0].hash).to eql 'SHA512'
     expect(sigs[0].key.keyid).to eql '7BC6709B15C23A4A'
-    expect(Time.now - sigs[0].creation_time).to be <= 5
+    expect(Time.now - sigs[0].creation_time).to be <= 10
     expect(sigs[0].expiration_time).to eql 60
     expect(sigs[0].good?).to be true
     expect(sigs[0].valid?).to be true
@@ -84,7 +84,7 @@ describe Rnp::Verify do
       expect(sigs[1].expiration_time).to eql 60
     end
     expect(sigs[1].key.keyid).to eql '2FCADF05FFA501BB'
-    expect(Time.now - sigs[0].creation_time).to be <= 5
+    expect(Time.now - sigs[0].creation_time).to be <= 10
     expect(sigs[1].good?).to be true
     expect(sigs[1].valid?).to be true
     expect(sigs[1].expired?).to be false
