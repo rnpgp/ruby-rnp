@@ -280,6 +280,10 @@ class Rnp
     # userid is valid even if key expiration in userid expiration expires key.
     "relax-userid-validity-checks" => Rnp.version >= Rnp.version("0.15.2") ||
       Rnp.commit_time >= 1624526708,
+    # Behavior on default key expiration time was changed:
+    # Now default key expiration time is 2 years
+    "default-key-expiration-2-years" => Rnp.version >= Rnp.version("0.17.0") ||
+      Rnp.commit_time >= 1645578982,
   }.freeze
 
   def self.has?(feature)
