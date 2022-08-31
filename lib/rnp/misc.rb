@@ -284,6 +284,10 @@ class Rnp
     # Now default key expiration time is 2 years
     "default-key-expiration-2-years" => Rnp.version >= Rnp.version("0.17.0") ||
       Rnp.commit_time >= 1645578982,
+    # Behaviour on signature validation was changed:
+    # Now at least one valid signature is required for success
+    "require-single-valid-signature" => Rnp.version >= Rnp.version("0.16.1") ||
+      Rnp.commit_time >= 1661781294,
   }.freeze
 
   def self.has?(feature)
