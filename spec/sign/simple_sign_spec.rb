@@ -291,9 +291,17 @@ describe Rnp.instance_method(:detached_sign) do
     it 'raises an error on a corrupt signature' do
       badsig = @signature.dup
       badsig[badsig.size / 2] = (badsig[badsig.size / 2].ord ^ 0xff).chr
-      expect do
+      if Rnp.has?("require-single-valid-signature")
         @rnp.detached_verify(data: Rnp::Input.from_string(@data), signature: Rnp::Input.from_string(badsig))
-      end.to raise_error(Rnp::InvalidSignatureError)
+        badsig[badsig.size - 2] = (badsig[badsig.size - 2].ord ^ 0xff).chr
+        expect do
+          @rnp.detached_verify(data: Rnp::Input.from_string(@data), signature: Rnp::Input.from_string(badsig))
+        end.to raise_error(Rnp::InvalidSignatureError)
+      else
+        expect do
+          @rnp.detached_verify(data: Rnp::Input.from_string(@data), signature: Rnp::Input.from_string(badsig))
+        end.to raise_error(Rnp::InvalidSignatureError)
+      end
     end
   end # verification
 end # detached_sign
