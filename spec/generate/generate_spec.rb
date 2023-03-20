@@ -337,9 +337,9 @@ describe Rnp.instance_method(:start_generate_subkey),
 
     it "has the correct validity period" do
       if Rnp.has?("default-key-expiration-2-years")
-        expect(@json["expiration"]).to be 63072000
+        expect(@json["expiration"]).to eq 63072000
       else
-        expect(@json["expiration"]).to be 0
+        expect(@json["expiration"]).to eq 0
       end
     end
   end

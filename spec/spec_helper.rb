@@ -2,14 +2,13 @@
 
 # (c) 2018 Ribose Inc.
 
-require 'simplecov'
-SimpleCov.start
+if ENV["COVERAGE"] == "true"
+  require "simplecov"
+  require "codecov"
 
-if ENV['CI'] == 'true'
-  require 'codecov'
+  SimpleCov.start
   SimpleCov.formatter = SimpleCov::Formatter::Codecov
 end
 
-$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
-require 'rnp'
-
+$LOAD_PATH.unshift File.expand_path("../lib", __dir__)
+require "rnp"

@@ -1,0 +1,118 @@
+name: test-and-release
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: '${{ github.workflow }}-${{ github.job }}-${{ github.head_ref || github.ref_name }}'
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ 'ubuntu-latest', 'macos-latest' ]
+        ruby: [ '2.7', '3.0', '3.1', '3.2', 'head' ]
+        rnp: [ 'v0.15.2', 'v0.16.2', 'master' ]
+        env: [ { COVERAGE: false } ]
+        include:
+        - os: 'ubuntu-latest'
+          ruby: '3.2'
+          rnp: 'master'
+          env: { COVERAGE: 'true' }
+
+    runs-on: ${{ matrix.os }}
+    env: ${{ matrix.env }}
+    steps:
+    - name: Install packages Ubuntu
+      if: matrix.os == 'ubuntu-latest'
+#     Already installed on GHA: build-essential libbz2-dev zlib1g-dev
+      run: sudo apt-get install cmake libbotan-2-dev libjson-c-dev
+
+    - name: Install packages MacOS
+      if: matrix.os == 'macos-latest'
+#     Already installed on GHA: cmake make
+      run: brew install botan json-c
+
+    - name: Checkout rnp
+      uses: actions/checkout@v3
+      with:
+        repository: rnpgp/rnp
+        path: rnp
+        ref: ${{ matrix.rnp }}
+
+    - name: Configure rnp
+      run:  cmake -B rnp/build -DBUILD_TESTING=OFF -DENABLE_DOC=OFF -DDOWNLOAD_SEXP=ON -DBUILD_SHARED_LIBS=ON rnp
+
+    - name: Build rnp
+      run:  cmake --build rnp/build
+
+    - name: Install rnp
+      run:  sudo cmake --install rnp/build
+
+    - name: Checkout ruby-rnp
+      uses: actions/checkout@v3
+
+    - name: Setup Ruby and bundle
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby }}
+        bundler-cache: true
+
+    - name: Test
+      run: bundle exec rake
+
+  package:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    steps:
+    - name: Install packages Ubuntu
+#     Already installed on GHA: build-essential libbz2-dev zlib1g-dev
+      run: sudo apt-get install cmake libbotan-2-dev libjson-c-dev
+
+    - name: Checkout rnp
+      uses: actions/checkout@v3
+      with:
+        repository: rnpgp/rnp
+        path: rnp
+        ref: master
+
+    - name: Configure rnp
+      run:  cmake -B rnp/build -DBUILD_TESTING=OFF -DENABLE_DOC=OFF -DDOWNLOAD_SEXP=ON -DBUILD_SHARED_LIBS=ON rnp
+
+    - name: Build rnp
+      run:  cmake --build rnp/build
+
+    - name: Install rnp
+      run:  sudo cmake --install rnp/build
+
+    - name: Checkout ruby-rnp
+      uses: actions/checkout@v3
+
+    - name: Setup Ruby and bundle
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.2'
+        bundler-cache: true
+
+    - name: Package
+      run: bundle exec rake build
+
+    - name: Publish to rubygems.org
+      if: contains(github.ref, 'refs/tags/v')
+      env:
+        RUBYGEMS_API_KEY: ${{secrets.RNP_RUBYGEMS_API_KEY}}
+      run: |
+        mkdir -p ~/.gem
+        touch ~/.gem/credentials
+        cat > ~/.gem/credentials << EOF
+        ---
+        :rubygems_api_key: ${RUBYGEMS_API_KEY}
+        EOF
+        chmod 0600 ~/.gem/credentials
+        gem signin
+        for gem in pkg/*.gem; do gem push -V $gem; done

@@ -19,7 +19,7 @@ Gem::Specification.new do |spec|
   spec.extra_rdoc_files = %w[README.adoc CHANGELOG.adoc LICENSE.txt]
   spec.require_paths = ['lib']
 
-  spec.required_ruby_version = '>= 2.3.0'
+  spec.required_ruby_version = '>= 2.7.0'
 
   spec.metadata['yard.run'] = 'yard'
 
@@ -35,4 +35,3 @@ Gem::Specification.new do |spec|
 
   spec.add_runtime_dependency 'ffi', '~> 1.9'
 end
-

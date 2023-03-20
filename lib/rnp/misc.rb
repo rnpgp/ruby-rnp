@@ -282,7 +282,7 @@ class Rnp
       Rnp.commit_time >= 1624526708,
     # Behavior on default key expiration time was changed:
     # Now default key expiration time is 2 years
-    "default-key-expiration-2-years" => Rnp.version >= Rnp.version("0.17.0") ||
+    "default-key-expiration-2-years" => Rnp.version >= Rnp.version("0.16.1") ||
       Rnp.commit_time >= 1645578982,
     # Behaviour on signature validation was changed:
     # Now at least one valid signature is required for success
@@ -295,4 +295,3 @@ class Rnp
     FEATURES[feature]
   end
 end # class
-
