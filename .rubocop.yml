@@ -5,4 +5,4 @@ inherit_from:
 # ...
 
 AllCops:
-  TargetRubyVersion: 2.5
+  TargetRubyVersion: 2.7
