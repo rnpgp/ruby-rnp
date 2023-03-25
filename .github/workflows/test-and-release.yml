@@ -3,8 +3,8 @@ name: test-and-release
 on:
   pull_request:
   push:
-    branches:
-      - main
+    branches: [ main ]
+    tags: [ v* ]
 
 concurrency:
   group: '${{ github.workflow }}-${{ github.job }}-${{ github.head_ref || github.ref_name }}'
@@ -23,6 +23,7 @@ jobs:
         - os: 'ubuntu-latest'
           ruby: '3.2'
           rnp: 'master'
+          submodules: true
           env: { COVERAGE: 'true' }
 
     runs-on: ${{ matrix.os }}
@@ -66,8 +67,9 @@ jobs:
     - name: Test
       run: bundle exec rake
 
-  package:
+  package-and-release:
     runs-on: ubuntu-latest
+    if: contains(github.ref, 'refs/tags/v')
     needs: build-and-test
     steps:
     - name: Install packages Ubuntu
@@ -80,6 +82,7 @@ jobs:
         repository: rnpgp/rnp
         path: rnp
         ref: master
+        submodules: true
 
     - name: Configure rnp
       run:  cmake -B rnp/build -DBUILD_TESTING=OFF -DENABLE_DOC=OFF -DDOWNLOAD_SEXP=ON -DBUILD_SHARED_LIBS=ON rnp
@@ -103,7 +106,6 @@ jobs:
       run: bundle exec rake build
 
     - name: Publish to rubygems.org
-      if: contains(github.ref, 'refs/tags/v')
       env:
         RUBYGEMS_API_KEY: ${{secrets.RNP_RUBYGEMS_API_KEY}}
       run: |
