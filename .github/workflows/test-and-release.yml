@@ -32,7 +32,7 @@ on:
     tags: [ v* ]
   workflow_dispatch:
     inputs:
-      version:
+      tag:
         descritption: 'rnp version to test'
         type: 'string'
 
@@ -45,14 +45,17 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.matrix.outputs.matrix }}
+      coverage: ${{ steps.matrix.outputs.coverage }}
     steps:
     - name: Setup test matrix
       id: matrix
       run: |
-        if [ "${{ github.event.inputs.version }}" != "" ]; then
-          echo "matrix=[ '${{ github.event.inputs.version }}' ]" >> $GITHUB_OUTPUT;
+        if [ "${{ github.event.inputs.tag }}" != "" ]; then
+          echo "matrix=[ '${{ github.event.inputs.tag }}' ]" >> $GITHUB_OUTPUT;
+          echo "coverage=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT;
         else
           echo "matrix=[ 'v0.15.2', 'v0.16.2', 'master' ]" >> $GITHUB_OUTPUT;
+          echo "coverage=master" >> $GITHUB_OUTPUT;
         fi
 
   build-and-test:
@@ -67,8 +70,7 @@ jobs:
         include:
         - os: 'ubuntu-latest'
           ruby: '3.2'
-          rnp: 'master'
-          submodules: true
+          rnp: ${{ needs.prepare.outputs.coverage }}
           env: { COVERAGE: 'true' }
 
     runs-on: ${{ matrix.os }}
