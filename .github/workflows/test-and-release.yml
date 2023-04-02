@@ -25,7 +25,7 @@
 name: test-and-release
 
 on:
-  workflow_dispatch:
+  repository_dispatch:
   pull_request:
   push:
     branches: [ main ]
