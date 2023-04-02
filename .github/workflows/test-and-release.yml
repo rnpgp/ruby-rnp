@@ -5,6 +5,7 @@ on:
   push:
     branches: [ main ]
     tags: [ v* ]
+  workflow_dispatch:
 
 concurrency:
   group: '${{ github.workflow }}-${{ github.job }}-${{ github.head_ref || github.ref_name }}'
@@ -44,6 +45,7 @@ jobs:
       with:
         repository: rnpgp/rnp
         path: rnp
+        submodules: true
         ref: ${{ matrix.rnp }}
 
     - name: Configure rnp
