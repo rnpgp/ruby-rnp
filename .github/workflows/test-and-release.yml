@@ -34,7 +34,7 @@ on:
     types: [ 'rnp update' ]
   workflow_dispatch:
     inputs:
-      version:
+      tag:
         descritption: 'rnp version to test'
         type: 'string'
 
