@@ -30,7 +30,7 @@ on:
     branches: [ main ]
     tags: [ v* ]
   repository_dispatch:
-    types: [ test ]
+    types: [ 'rnp update' ]
   workflow_dispatch:
 
 concurrency:
