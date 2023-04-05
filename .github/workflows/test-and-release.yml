@@ -30,7 +30,7 @@ on:
     branches: [ main ]
     tags: [ v* ]
   repository_dispatch:
-    types: [ run-ruby-rnp ]
+    types: [ test ]
   workflow_dispatch:
 
 concurrency:
@@ -92,7 +92,7 @@ jobs:
         ref: ${{ matrix.rnp }}
 
     - name: Configure rnp
-      run:  cmake -B rnp/build -DBUILD_TESTING=OFF -DENABLE_DOC=OFF -DDOWNLOAD_SEXP=ON -DBUILD_SHARED_LIBS=ON rnp
+      run:  cmake -B rnp/build -DBUILD_TESTING=OFF -DENABLE_DOC=OFF -DBUILD_SHARED_LIBS=ON rnp
 
     - name: Build rnp
       run:  cmake --build rnp/build
@@ -130,7 +130,7 @@ jobs:
         submodules: true
 
     - name: Configure rnp
-      run:  cmake -B rnp/build -DBUILD_TESTING=OFF -DENABLE_DOC=OFF -DDOWNLOAD_SEXP=ON -DBUILD_SHARED_LIBS=ON rnp
+      run:  cmake -B rnp/build -DBUILD_TESTING=OFF -DENABLE_DOC=OFF -DBUILD_SHARED_LIBS=ON rnp
 
     - name: Build rnp
       run:  cmake --build rnp/build
