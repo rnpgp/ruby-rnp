@@ -30,12 +30,8 @@ on:
     branches: [ main ]
     tags: [ v* ]
   repository_dispatch:
-    types: [ run-ruby-rnp]
-#  workflow_dispatch:
-#    inputs:
-#      tag:
-#        descritption: 'rnp version to test'
-#        type: 'string'
+    types: [ run-ruby-rnp ]
+  workflow_dispatch:
 
 concurrency:
   group: '${{ github.workflow }}-${{ github.job }}-${{ github.head_ref || github.ref_name }}'
