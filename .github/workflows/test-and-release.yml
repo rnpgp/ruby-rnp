@@ -52,7 +52,7 @@ jobs:
           echo "coverage=${{ github.event.client_payload.tag }}" >> $GITHUB_OUTPUT
         else
           echo "matrix=[ 'v0.15.2', 'v0.16.2', '' ]" >> $GITHUB_OUTPUT
-          echo "coverage=''" >> $GITHUB_OUTPUT
+          echo "coverage=$(git remote show https://github.com/rnpgp/rnp | grep HEAD | cut -d' ' -f5)" >> $GITHUB_OUTPUT
         fi
 
   build-and-test:
