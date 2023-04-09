@@ -48,11 +48,11 @@ jobs:
       id: matrix
       run: |
         if [ "${{ github.event.client_payload }}" != "" ]; then
-          echo "matrix=[ '${{ github.event.client_payload.tag }}' ]" >> $GITHUB_OUTPUT;
-          echo "coverage=${{ github.event.client_payload.tag }}" >> $GITHUB_OUTPUT;
+          echo "matrix=[ '${{ github.event.client_payload.tag }}' ]" >> $GITHUB_OUTPUT
+          echo "coverage=${{ github.event.client_payload.tag }}" >> $GITHUB_OUTPUT
         else
-          echo "matrix=[ 'v0.15.2', 'v0.16.2', 'master' ]" >> $GITHUB_OUTPUT;
-          echo "coverage=master" >> $GITHUB_OUTPUT;
+          echo "matrix=[ 'v0.15.2', 'v0.16.2', '' ]" >> $GITHUB_OUTPUT
+          echo "coverage=''" >> $GITHUB_OUTPUT
         fi
 
   build-and-test:
