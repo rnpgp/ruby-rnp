@@ -37,6 +37,9 @@ concurrency:
   group: '${{ github.workflow }}-${{ github.job }}-${{ github.head_ref || github.ref_name }}'
   cancel-in-progress: true
 
+env:
+  BOTAN_VERSION: 2.19.3
+  
 jobs:
   prepare:
     runs-on: ubuntu-latest
@@ -78,10 +81,35 @@ jobs:
 #     Already installed on GHA: build-essential libbz2-dev zlib1g-dev
       run: sudo apt-get install cmake libbotan-2-dev libjson-c-dev
 
+#      Brew installs Botan3 now and it is not supported yet
+    - name: Botan2 cache / MacOS
+      if: matrix.os == 'macos-latest'
+      id: cache
+      uses: actions/cache@v3
+      with:
+        path: Botan-${{ env.BOTAN_VERSION }}
+        key: ${{ matrix.os }}-Botan-${{ env.BOTAN_VERSION }}
+
+    - name: Build Botan2 / MacOS
+      if:  matrix.os == 'macos-latest' && steps.cache.outputs.cache-hit != 'true'
+      run: |
+        wget -qO- https://botan.randombit.net/releases/Botan-${{ env.BOTAN_VERSION }}.tar.xz | tar xvJ
+        cd Botan-${{ env.BOTAN_VERSION }}
+        ./configure.py --prefix=/usr/local
+        make
+        cd ..
+
+    - name: Install Botan2 / MacOS
+      if:  matrix.os == 'macos-latest'
+      run: |
+        cd Botan-${{ env.BOTAN_VERSION }}
+        sudo make install
+        cd ..
+
     - name: Install packages MacOS
       if: matrix.os == 'macos-latest'
 #     Already installed on GHA: cmake make
-      run: brew install botan json-c
+      run: brew install json-c
 
     - name: Checkout rnp
       uses: actions/checkout@v3
