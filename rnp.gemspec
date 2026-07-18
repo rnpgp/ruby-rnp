@@ -24,14 +24,14 @@ Gem::Specification.new do |spec|
   spec.metadata['yard.run'] = 'yard'
 
   spec.add_development_dependency 'asciidoctor', '~> 2.0'
-  spec.add_development_dependency 'bundler', '>= 1.14', '< 3'
-  spec.add_development_dependency 'codecov', '~> 0.1'
-  spec.add_development_dependency 'rake', '>= 10', '< 14'
-  spec.add_development_dependency 'redcarpet', '~> 3.4'
-  spec.add_development_dependency 'rspec', '~> 3.5'
+  spec.add_development_dependency 'bundler', '>= 2'
+  spec.add_development_dependency 'rake', '~> 13.0'
+  spec.add_development_dependency 'redcarpet', '~> 3.6'
+  spec.add_development_dependency 'rspec', '~> 3.13'
   spec.add_development_dependency 'rubocop', '~> 0.75.0'
-  spec.add_development_dependency 'simplecov', '~> 0.14'
-  spec.add_development_dependency 'yard', '~> 0.9.12'
+  spec.add_development_dependency 'simplecov', '~> 0.22'
+  spec.add_development_dependency 'simplecov-json', '~> 0.2'
+  spec.add_development_dependency 'yard', '~> 0.9'
 
   spec.add_runtime_dependency 'ffi', '~> 1.9'
 end
