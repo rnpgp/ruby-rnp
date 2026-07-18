@@ -130,6 +130,10 @@ jobs:
     runs-on: ubuntu-latest
     if: contains(github.ref, 'refs/tags/v')
     needs: build-and-test
+    permissions:
+      contents: write
+    env:
+      RNP_RUBYGEMS_API_KEY: ${{ secrets.RNP_RUBYGEMS_API_KEY }}
     steps:
     - name: Install packages Ubuntu
 #     build-essential is preinstalled on GHA; libbz2-dev/zlib1g-dev are not on ubuntu-24.04
@@ -164,15 +168,20 @@ jobs:
     - name: Package
       run: bundle exec rake build
 
-    - name: Publish to rubygems.org
+    - name: Create GitHub Release
       env:
-        RUBYGEMS_API_KEY: ${{secrets.RNP_RUBYGEMS_API_KEY}}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: gh release create "$GITHUB_REF_NAME" pkg/*.gem --generate-notes
+
+    - name: Publish to rubygems.org
+      # skipped unless the RNP_RUBYGEMS_API_KEY secret is configured
+      if: ${{ env.RNP_RUBYGEMS_API_KEY != '' }}
       run: |
         mkdir -p ~/.gem
         touch ~/.gem/credentials
         cat > ~/.gem/credentials << EOF
         ---
-        :rubygems_api_key: ${RUBYGEMS_API_KEY}
+        :rubygems_api_key: ${RNP_RUBYGEMS_API_KEY}
         EOF
         chmod 0600 ~/.gem/credentials
         gem signin

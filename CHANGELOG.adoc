@@ -1,5 +1,14 @@
 == Changelog
 
+=== 1.1.0 [19-07-2026]
+* Support librnp 0.17.x/0.18.x; CI tests against v0.18.1
+  (CVE-2025-13470) and the rnp main branch
+* Add Rnp::Signature#errors and Rnp::Op::Verify::Signature#handle
+  bindings for rnp_signature_error_count()/rnp_signature_error_at()
+  (librnp 0.18.0)
+* Modernize CI (Ruby 3.1-3.4, current actions) and development
+  dependencies
+
 === 1.0.5 [20-03-2023]
 * Rub GHA tests for Ruby 2.7, 3.0, 3.1, 3.2, head
   and different rnp versions
