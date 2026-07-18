@@ -1,10 +1,14 @@
 = RNP’s Ruby bindings overview
 
-image:https://github.com/rnpgp/ruby-rnp/actions/workflows/tests.yml/badge.svg["Build Status", link="https://github.com/rnpgp/ruby-rnp/actions/workflows/tests.yml"]
-image:https://codecov.io/github/rnpgp/ruby-rnp/coverage.svg["Code Coverage", link="https://codecov.io/github/rnpgp/ruby-rnp?branch=master"]
+image:https://github.com/rnpgp/ruby-rnp/actions/workflows/test-and-release.yml/badge.svg["Build Status", link="https://github.com/rnpgp/ruby-rnp/actions/workflows/test-and-release.yml"]
+image:https://codecov.io/gh/rnpgp/ruby-rnp/branch/main/graph/badge.svg["Code Coverage", link="https://codecov.io/gh/rnpgp/ruby-rnp"]
 
 The `rnp` gem provides Ruby bindings to the
-https://www.rnpgp.com/software/rnp/[RNP OpenPGP library] and requires RNP 0.10.0 or newer.
+https://www.rnpgp.com/software/rnp/[RNP OpenPGP library] and requires RNP 0.15.2 or newer.
+
+NOTE: RNP 0.18.1 or newer is strongly recommended: RNP 0.18.0 is affected by
+CVE-2025-13470, where PKESK session keys were generated without
+cryptographically random values (older releases are not affected).
 
 == Installation
 
