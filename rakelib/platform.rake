@@ -20,22 +20,27 @@ def libname
   end
 end
 
-def replace_in_file(file, old, new)
-  content = nil
-  File.open(file, "r") {|f| content = f.read}
-  File.open(file, "w") {|f| f.puts content.gsub(old, new)}
-end
-
-def apply_workadound_1654
-  # https://github.com/rnpgp/rnp/issues/1654 workaround
-  replace_in_file("ci/main.sh", '[ -v "GTEST_SOURCES" ]',
-                  '[ -n "${GTEST_SOURCES:-}" ]')
-  replace_in_file("ci/main.sh", '[ -v "DOWNLOAD_GTEST" ]',
-                  '[ -n "${DOWNLOAD_GTEST:-}" ]')
-  replace_in_file("ci/main.sh", '[ -v "DOWNLOAD_RUBYRNP" ]',
-                  '[ -n "${DOWNLOAD_RUBYRNP:-}" ]')
-  replace_in_file("ci/main.sh", '[ -v "CRYPTO_BACKEND" ]',
-                  '[ -n "${CRYPTO_BACKEND:-}" ]')
+# rnp moved its CI shell scripts from ci/ to ci-legacy/ without updating
+# their internal references, which still expect to be sourced as ci/...
+# from the repository root. Recreate the expected layout with symlinks.
+def setup_legacy_ci_scripts
+  {
+    "ci/main.sh" => "../ci-legacy/main.sh",
+    "ci/success.sh" => "../ci-legacy/success.sh",
+    "ci/env.inc.sh" => "../ci-legacy/env.inc.sh",
+    "ci/env-common.inc.sh" => "../ci-legacy/env-common.inc.sh",
+    "ci/env-linux.inc.sh" => "../ci-legacy/env-linux.inc.sh",
+    "ci/env-freebsd.inc.sh" => "../ci-legacy/env-freebsd.inc.sh",
+    "ci/utils.inc.sh" => "../ci-legacy/utils.inc.sh",
+    "ci/lib/install_functions.inc.sh" =>
+      "../../ci-legacy/lib/install_functions.inc.sh",
+    "ci/lib/cacheable_install_functions.inc.sh" =>
+      "../../ci-legacy/lib/cacheable_install_functions.inc.sh",
+  }.each do |link, target|
+    next if File.exist?(link)
+    FileUtils.mkdir_p(File.dirname(link))
+    FileUtils.ln_s(target, link)
+  end
 end
 
 workspace = File.dirname(File.dirname(__FILE__))
@@ -73,7 +78,7 @@ end
 
 desc "Git clone rnp native library"
 task :rnp_git do
-  rev = ENV["RNP_VERSION"] || "master"
+  rev = ENV["RNP_VERSION"] || "main"
   unless Dir.exist?(librnp_path)
     system("git clone https://github.com/rnpgp/rnp -b #{rev} #{librnp_path}")
   end
@@ -96,7 +101,6 @@ task compile: [:rnp_git] do
       "RNP_INSTALL" => rnp_install,
       "USE_STATIC_DEPENDENCIES" => "yes",
       "SKIP_TESTS" => "1",
-      "DOWNLOAD_RUBYRNP" => "OFF",
     }
 
     cache_path = File.join(workspace, "tmp", cache_dir)
@@ -104,11 +108,12 @@ task compile: [:rnp_git] do
     FileUtils.ln_s(cache_path, tmp)
 
     Dir.chdir(librnp_path) do
-      apply_workadound_1654
+      ci_dir = Dir.exist?("ci-legacy") ? "ci-legacy" : "ci"
+      setup_legacy_ci_scripts if ci_dir == "ci-legacy"
 
-      system(build_env, "ci/install_noncacheable_dependencies.sh")
-      system(build_env, "ci/install_cacheable_dependencies.sh botan jsonc")
-      system(build_env, "ci/run.sh")
+      system(build_env, "#{ci_dir}/install_noncacheable_dependencies.sh")
+      system(build_env, "#{ci_dir}/install_cacheable_dependencies.sh botan jsonc")
+      system(build_env, "#{ci_dir}/run.sh")
     end
 
     FileUtils.cp(File.join(rnp_install, "lib", libname), "lib/rnp/ffi/")
