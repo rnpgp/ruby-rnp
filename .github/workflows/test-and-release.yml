@@ -122,7 +122,9 @@ jobs:
       with:
         files: ./coverage/coverage.json
         token: ${{ secrets.CODECOV_TOKEN }}
-        fail_ci_if_error: true
+        # no CODECOV_TOKEN secret exists yet; don't fail CI until one is added
+        # (the repo's protected main branch makes uploads require a token)
+        fail_ci_if_error: false
 
   package-and-release:
     runs-on: ubuntu-latest
