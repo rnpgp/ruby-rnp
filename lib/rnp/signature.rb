@@ -90,6 +90,23 @@ class Rnp
       end
     end
 
+    # Verification errors recorded for this signature.
+    #
+    # @note Requires librnp 0.18.0 or newer.
+    #
+    # @return [Array<Integer>] a list of error codes (rnp_result_t values)
+    #   describing why the signature failed verification. An empty array
+    #   means no errors were recorded.
+    def errors
+      pcount = FFI::MemoryPointer.new(:size_t)
+      Rnp.call_ffi(:rnp_signature_error_count, @ptr, pcount)
+      perror = FFI::MemoryPointer.new(:uint32)
+      (0...pcount.read(:size_t)).map do |idx|
+        Rnp.call_ffi(:rnp_signature_error_at, @ptr, idx, perror)
+        perror.read(:uint32)
+      end
+    end
+
     private
 
     def string_property(func)

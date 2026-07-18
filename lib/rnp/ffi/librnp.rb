@@ -109,6 +109,9 @@ module LibRnp
     rnp_signature_packet_to_json: [%i[pointer uint32 pointer], :uint32],
     rnp_signature_handle_destroy: [%i[pointer], :uint32],
     rnp_op_verify_signature_get_handle: [%i[pointer pointer], :uint32],
+    # signature validation errors
+    rnp_signature_error_count: [%i[pointer pointer], :uint32],
+    rnp_signature_error_at: [%i[pointer size_t pointer], :uint32],
     # key uids
     rnp_key_get_uid_handle_at: [%i[pointer size_t pointer], :uint32],
     rnp_uid_is_revoked: [%i[pointer pointer], :uint32],

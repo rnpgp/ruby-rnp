@@ -83,6 +83,8 @@ class Rnp
 
       # @api private
       def initialize(ptr)
+        @ptr = ptr
+
         # status
         @status = LibRnp.rnp_op_verify_signature_get_status(ptr)
         pptr = FFI::MemoryPointer.new(:pointer)
@@ -132,6 +134,17 @@ class Rnp
       # @return [Boolean] true if the signature is expired
       def expired?
         @status == LibRnp::RNP_ERROR_SIGNATURE_EXPIRED
+      end
+
+      # Get the full signature handle, providing access to extended
+      # information (verification errors, JSON dump, etc).
+      #
+      # @see Rnp::Signature
+      # @return [Rnp::Signature]
+      def handle
+        pptr = FFI::MemoryPointer.new(:pointer)
+        Rnp.call_ffi(:rnp_op_verify_signature_get_handle, @ptr, pptr)
+        Rnp::Signature.new(pptr.read_pointer)
       end
     end
 
