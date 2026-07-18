@@ -51,7 +51,7 @@ jobs:
           echo "matrix=[ '${{ github.event.client_payload.tag }}' ]" >> $GITHUB_OUTPUT
           echo "coverage=${{ github.event.client_payload.tag }}" >> $GITHUB_OUTPUT
         else
-          echo "matrix=[ 'v0.15.2', 'v0.16.2', '' ]" >> $GITHUB_OUTPUT
+          echo "matrix=[ 'v0.17.1', 'v0.18.1', '' ]" >> $GITHUB_OUTPUT
           echo "coverage=$(git remote show https://github.com/rnpgp/rnp | grep HEAD | cut -d' ' -f5)" >> $GITHUB_OUTPUT
         fi
 
@@ -61,12 +61,12 @@ jobs:
       fail-fast: false
       matrix:
         os: [ 'ubuntu-latest', 'macos-latest' ]
-        ruby: [ '2.7', '3.0', '3.1', '3.2', 'head' ]
+        ruby: [ '3.1', '3.2', '3.3', '3.4', 'head' ]
         rnp: ${{ fromJson(needs.prepare.outputs.matrix) }}
         env: [ { COVERAGE: false } ]
         include:
         - os: 'ubuntu-latest'
-          ruby: '3.2'
+          ruby: '3.4'
           rnp: ${{ needs.prepare.outputs.coverage }}
           env: { COVERAGE: 'true' }
 
@@ -84,7 +84,7 @@ jobs:
       run: brew install botan json-c
 
     - name: Checkout rnp
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         repository: rnpgp/rnp
         path: rnp
@@ -92,7 +92,9 @@ jobs:
         ref: ${{ matrix.rnp }}
 
     - name: Configure rnp
-      run:  cmake -B rnp/build -DBUILD_TESTING=OFF -DENABLE_DOC=OFF -DBUILD_SHARED_LIBS=ON rnp
+      # Homebrew's botan is Botan 3, which requires CRYPTO_BACKEND=botan3
+      # (supported by rnp >= 0.17.1).
+      run:  cmake -B rnp/build -DBUILD_TESTING=OFF -DENABLE_DOC=OFF -DBUILD_SHARED_LIBS=ON ${{ matrix.os == 'macos-latest' && '-DCRYPTO_BACKEND=botan3' || '' }} rnp
 
     - name: Build rnp
       run:  cmake --build rnp/build
@@ -101,7 +103,7 @@ jobs:
       run:  sudo cmake --install rnp/build
 
     - name: Checkout ruby-rnp
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Setup Ruby and bundle
       uses: ruby/setup-ruby@v1
@@ -111,6 +113,14 @@ jobs:
 
     - name: Test
       run: bundle exec rake
+
+    - name: Upload coverage to Codecov
+      if: env.COVERAGE == 'true'
+      uses: codecov/codecov-action@v5
+      with:
+        files: ./coverage/coverage.json
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: true
 
   package-and-release:
     runs-on: ubuntu-latest
@@ -122,11 +132,11 @@ jobs:
       run: sudo apt-get install cmake libbotan-2-dev libjson-c-dev
 
     - name: Checkout rnp
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         repository: rnpgp/rnp
         path: rnp
-        ref: master
+        ref: main
         submodules: true
 
     - name: Configure rnp
@@ -139,12 +149,12 @@ jobs:
       run:  sudo cmake --install rnp/build
 
     - name: Checkout ruby-rnp
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Setup Ruby and bundle
       uses: ruby/setup-ruby@v1
       with:
-        ruby-version: '3.2'
+        ruby-version: '3.4'
         bundler-cache: true
 
     - name: Package
