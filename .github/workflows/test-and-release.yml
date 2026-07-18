@@ -76,7 +76,9 @@ jobs:
     - name: Install packages Ubuntu
       if: matrix.os == 'ubuntu-latest'
 #     build-essential is preinstalled on GHA; libbz2-dev/zlib1g-dev are not on ubuntu-24.04
-      run: sudo apt-get install cmake libbotan-2-dev libjson-c-dev libbz2-dev zlib1g-dev
+      run: |
+        sudo apt-get install cmake libbotan-2-dev libjson-c-dev libbz2-dev zlib1g-dev
+        echo LD_LIBRARY_PATH="/usr/local/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
 
     - name: Install packages MacOS
       if: matrix.os == 'macos-latest'
