@@ -36,6 +36,29 @@ describe Rnp::Output.method(:to_armor),
     expect(base.string.end_with?("-----END PGP MESSAGE-----\r\n")).to be true
   end
 
+  it 'survives garbage collection in any finalization order' do
+    # the armored output must be finalized before its base output
+    # (regression test for a use-after-free)
+    200.times do
+      base = Rnp::Output.to_string
+      armored = Rnp::Output.to_armor(base, 'message')
+      armored.write('x' * 100)
+      armored.finish
+    end
+    GC.start
+  end
+
+  it 'keeps the base output usable after the armored one is finalized' do
+    base = Rnp::Output.to_string
+    armored = Rnp::Output.to_armor(base, 'message')
+    armored.write('my data')
+    armored.finish
+    text = base.string
+    armored = nil
+    GC.start
+    expect(base.string).to eql text
+  end
+
   describe Rnp::Output.instance_method(:armor_line_length=),
            skip: !LibRnp::HAVE_RNP_OUTPUT_ARMOR_SET_LINE_LENGTH do
     it 'sets the line length' do

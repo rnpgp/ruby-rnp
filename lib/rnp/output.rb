@@ -98,9 +98,52 @@ class Rnp
     def self.to_armor(base, type)
       pptr = FFI::MemoryPointer.new(:pointer)
       Rnp.call_ffi(:rnp_output_to_armor, base.ptr, pptr, type)
-      # pass base as the second argument so it is not garbage collected
-      # before this output
-      Output.new(pptr.read_pointer, base)
+      base_ptr = base.instance_variable_get(:@ptr)
+      # The armored output references the base output internally, and
+      # librnp accesses the base output when the armored output is
+      # destroyed (see rnp_output_destroy()). The armored output must
+      # therefore always be destroyed before the base output, regardless
+      # of the order in which the garbage collector finalizes the two
+      # objects. The finalizers below coordinate this via a shared state.
+      state = { armored: pptr.read_pointer }
+      base_ptr.autorelease = false
+      base.instance_variable_set(
+        :@ptr,
+        FFI::AutoPointer.new(FFI::Pointer.new(base_ptr.address),
+                             base_finalizer(state))
+      )
+      output = allocate
+      output.instance_variable_set(
+        :@ptr, FFI::AutoPointer.new(state[:armored], armored_finalizer(state))
+      )
+      output.instance_variable_set(:@writer, base)
+      output
+    end
+
+    # @api private
+    # Finalizer for an armored output created via {.to_armor}: destroys
+    # the armored output (once).
+    def self.armored_finalizer(state)
+      lambda do |ptr|
+        if state[:armored]
+          LibRnp.rnp_output_destroy(ptr)
+          state[:armored] = nil
+        end
+      end
+    end
+
+    # @api private
+    # Finalizer for the base output of an armored output created via
+    # {.to_armor}: destroys the armored output first (if it still
+    # exists), then the base output.
+    def self.base_finalizer(state)
+      lambda do |ptr|
+        if state[:armored]
+          LibRnp.rnp_output_destroy(state[:armored])
+          state[:armored] = nil
+        end
+        LibRnp.rnp_output_destroy(ptr)
+      end
     end
 
     # Write to the output.
