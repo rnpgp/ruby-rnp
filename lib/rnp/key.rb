@@ -433,6 +433,103 @@ class Rnp
       Time.at(ptime.read(:uint32))
     end
 
+    # Get the key's revocation signature, if any.
+    #
+    # @return [Signature, nil] nil if there is no valid revocation
+    #   signature
+    def revocation_signature
+      pptr = FFI::MemoryPointer.new(:pointer)
+      Rnp.call_ffi(:rnp_key_get_revocation_signature, @ptr, pptr)
+      psig = pptr.read_pointer
+      Signature.new(psig) unless psig.null?
+    end
+
+    # Start building a certification signature over a userid, issued by
+    # this key. Customize the returned {KeySignature} and call
+    # {KeySignature#sign} to finalize it.
+    #
+    # @note This key (the signer) must be secret.
+    #
+    # @param uid [UserID] the userid to certify. It may belong to this key
+    #   (a self-certification) or to another key.
+    # @param type [String, nil] the certification type ('generic',
+    #   'persona', 'casual' or 'positive'). If nil, the default is used
+    #   ('positive' for a self-certification, 'generic' otherwise).
+    # @return [KeySignature]
+    def start_certification(uid, type: nil)
+      pptr = FFI::MemoryPointer.new(:pointer)
+      Rnp.call_ffi(:rnp_key_certification_create, @ptr, uid.ptr, type, pptr)
+      psig = pptr.read_pointer
+      KeySignature.new(psig) unless psig.null?
+    end
+
+    # Start building a direct-key signature, issued by this key. Customize
+    # the returned {KeySignature} and call {KeySignature#sign} to finalize
+    # it.
+    #
+    # @note This key (the signer) must be secret.
+    #
+    # @param target [Key, nil] the key to sign. If nil, the signature is
+    #   made over this key itself (a self-signature).
+    # @return [KeySignature]
+    def start_direct_signature(target = nil)
+      pptr = FFI::MemoryPointer.new(:pointer)
+      Rnp.call_ffi(:rnp_key_direct_signature_create, @ptr, target&.ptr,
+                   pptr)
+      psig = pptr.read_pointer
+      KeySignature.new(psig) unless psig.null?
+    end
+
+    # Start building a key or subkey revocation signature, issued by this
+    # key. Customize the returned {KeySignature} and call
+    # {KeySignature#sign} to finalize it.
+    #
+    # @note This key (the revoker) must be secret.
+    #
+    # @param target [Key, nil] the key to revoke. If nil, this key will
+    #   revoke itself.
+    # @return [KeySignature]
+    def start_revocation_signature(target = nil)
+      pptr = FFI::MemoryPointer.new(:pointer)
+      Rnp.call_ffi(:rnp_key_revocation_signature_create, @ptr, target&.ptr,
+                   pptr)
+      psig = pptr.read_pointer
+      KeySignature.new(psig) unless psig.null?
+    end
+
+    # Remove unneeded signatures from the key, its userids and subkeys.
+    #
+    # @note Any signature handles related to this key, its uids or subkeys
+    #   should not be used after this call.
+    #
+    # @param invalid [Boolean] remove signatures that are invalid and were
+    #   never valid
+    # @param unknown_key [Boolean] remove signatures made by an unknown
+    #   key
+    # @param non_self [Boolean] remove signatures that are not
+    #   self-signatures
+    # @return [void]
+    def remove_signatures(invalid: false, unknown_key: false,
+                          non_self: false)
+      flags = 0
+      flags |= LibRnp::RNP_KEY_SIGNATURE_INVALID if invalid
+      flags |= LibRnp::RNP_KEY_SIGNATURE_UNKNOWN_KEY if unknown_key
+      flags |= LibRnp::RNP_KEY_SIGNATURE_NON_SELF_SIG if non_self
+      Rnp.call_ffi(:rnp_key_remove_signatures, @ptr, flags, nil, nil)
+    end
+
+    # Remove a single signature from the key.
+    #
+    # @note The signature must have been obtained via this key or one of
+    #   its userids. Other handles of the same signature should not be
+    #   used after this call.
+    #
+    # @param signature [Signature] the signature to remove
+    # @return [void]
+    def remove_signature(signature)
+      Rnp.call_ffi(:rnp_signature_remove, @ptr, signature.ptr)
+    end
+
     private
 
     def string_property(func)
