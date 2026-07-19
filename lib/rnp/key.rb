@@ -648,6 +648,129 @@ class Rnp
       Rnp.call_ffi(:rnp_signature_remove, @ptr, signature.ptr)
     end
 
+    # Revoke the key (or subkey) by generating and adding a revocation
+    # signature.
+    #
+    # @note For a primary key the secret key must be available (otherwise
+    #   the keyrings are searched for a secret key authorized to issue
+    #   revocation signatures). For a subkey the primary secret key must
+    #   be available. If the secret key is locked, the password will be
+    #   asked via the password provider.
+    #
+    # @param hash [String, nil] the hash algorithm to use for the
+    #   signature (nil for the default)
+    # @param code [String, nil] the revocation reason code: 'no',
+    #   'superseded', 'compromised' or 'retired' (nil for 'no')
+    # @param reason [String, nil] the human-readable revocation reason
+    # @return [void]
+    def revoke(hash: nil, code: nil, reason: nil)
+      Rnp.call_ffi(:rnp_key_revoke, @ptr, 0, hash, code, reason)
+    end
+
+    # Set the key's expiration time. This requires re-signing, so the
+    # secret key (or, for a subkey, the secret primary key) must be
+    # available. If the secret key is locked, the password will be asked
+    # via the password provider.
+    #
+    # @param seconds [Integer] the expiration time in seconds, calculated
+    #   from the key creation time (0 if the key doesn't expire)
+    # @return [void]
+    def set_expiration(seconds)
+      Rnp.call_ffi(:rnp_key_set_expiration, @ptr, seconds)
+    end
+
+    # Get the default key for the specified usage. Accepts a primary key
+    # and returns one of its subkeys suitable for the desired usage (or
+    # the primary key itself, if suitable).
+    #
+    # @param usage [String, Symbol] the desired key usage ('sign',
+    #   'certify', 'encrypt', etc)
+    # @param subkeys_only [Boolean] if true, only subkeys are considered;
+    #   otherwise the primary key may be returned if it is suitable
+    # @return [Key, nil] nil if no key with the desired usage was found
+    def default_key(usage, subkeys_only: false)
+      flags = subkeys_only ? LibRnp::RNP_KEY_SUBKEYS_ONLY : 0
+      pptr = FFI::MemoryPointer.new(:pointer)
+      rc = LibRnp.rnp_key_get_default_key(@ptr, usage.to_s, flags, pptr)
+      if [LibRnp::RNP_ERROR_KEY_NOT_FOUND,
+          LibRnp::RNP_ERROR_NO_SUITABLE_KEY].include?(rc)
+        return nil
+      end
+      Rnp.raise_error('rnp_key_get_default_key failed', rc) unless rc.zero?
+      pkey = pptr.read_pointer
+      Key.new(pkey) unless pkey.null?
+    end
+
+    # Export the key in the minimal form used by the Autocrypt feature
+    # (primary key, userid, signature, subkey, binding signature).
+    #
+    # @param subkey [Key, nil] the subkey to export (nil to pick the
+    #   first suitable one)
+    # @param uid [String, nil] the userid to export (may be nil if the
+    #   key has only one userid)
+    # @param base64 [Boolean] if true, the output is base64-encoded
+    #   instead of binary OpenPGP packets
+    # @param output [Output] the output to write to. If nil, the result
+    #   will be returned directly as a String.
+    # @return [nil, String]
+    def export_autocrypt(subkey: nil, uid: nil, base64: false, output: nil)
+      flags = base64 ? LibRnp::RNP_KEY_EXPORT_BASE64 : 0
+      Output.default(output) do |output_|
+        Rnp.call_ffi(:rnp_key_export_autocrypt, @ptr, subkey&.ptr, uid,
+                     output_.ptr, flags)
+      end
+    end
+
+    # Generate and export a revocation signature for the key.
+    #
+    # @note This only exports the revocation signature. To actually
+    #   revoke the key, import the signature into the keystore or use
+    #   {#revoke}.
+    #
+    # @param output [Output] the output to write the signature to. If
+    #   nil, the result will be returned directly as a String.
+    # @param armored [Boolean] whether to ASCII-armor the output
+    # @param hash (see #revoke)
+    # @param code (see #revoke)
+    # @param reason (see #revoke)
+    # @return [nil, String]
+    def export_revocation(output: nil, armored: true, hash: nil, code: nil,
+                          reason: nil)
+      flags = armored ? LibRnp::RNP_KEY_EXPORT_ARMORED : 0
+      Output.default(output) do |output_|
+        Rnp.call_ffi(:rnp_key_export_revocation, @ptr, output_.ptr, flags,
+                     hash, code, reason)
+      end
+    end
+
+    # Tweak the Curve25519 secret key's least and most significant bits
+    # so that the exported secret key is compatible with implementations
+    # which do not tweak these bits automatically (see RFC 7748, sec. 5).
+    #
+    # @note This is an advanced operation. It requires an unlocked
+    #   ECDH Curve25519 secret key, so make sure to call {#lock}
+    #   afterwards.
+    #
+    # @return [void]
+    def x25519_bits_tweak
+      Rnp.call_ffi(:rnp_key_25519_bits_tweak, @ptr)
+    end
+
+    # Check whether the Curve25519 secret key's bits are correctly set
+    # (tweaked). If not, {#x25519_bits_tweak} should be called so that
+    # the exported secret key is compatible with implementations which
+    # do not tweak these bits automatically (see RFC 7748, sec. 5).
+    #
+    # @note This is an advanced operation. It requires an unlocked
+    #   ECDH Curve25519 secret key.
+    #
+    # @return [Boolean] true if the secret key's bits are correctly set
+    def x25519_bits_tweaked?
+      presult = FFI::MemoryPointer.new(:bool)
+      Rnp.call_ffi(:rnp_key_25519_bits_tweaked, @ptr, presult)
+      presult.read(:bool)
+    end
+
     private
 
     def string_property(func)
