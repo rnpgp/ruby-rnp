@@ -114,6 +114,18 @@ class Rnp
       Rnp.call_ffi(:rnp_op_generate_set_protection_password, @ptr, password)
     end
 
+    # Enable or disable password requesting via the ffi's password
+    # provider (see {Rnp#password_provider=}). The requested password will
+    # be used to protect the key.
+    #
+    # @note This is ignored if a password was set via {#password=}.
+    #
+    # @param request [Boolean] true to enable password requesting
+    #   (default is false, i.e. the key is generated unencrypted)
+    def request_password=(request)
+      Rnp.call_ffi(:rnp_op_generate_set_request_password, @ptr, request)
+    end
+
     # Set the protection mode for this key.
     #
     # @note This is only valid for keys saved in the G10 format.

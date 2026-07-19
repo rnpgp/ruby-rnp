@@ -173,6 +173,16 @@ class Rnp
       Rnp.call_ffi(:rnp_op_encrypt_set_expiration_time, @ptr, expiration_time)
     end
 
+    # Set additional encryption flags.
+    #
+    # @param flags [Integer] OR-ed combination of the LibRnp::RNP_ENCRYPT_*
+    #   constants. Currently only LibRnp::RNP_ENCRYPT_NOWRAP is supported:
+    #   it disables wrapping the data in a literal data packet, allowing to
+    #   encrypt already signed data.
+    def flags=(flags)
+      Rnp.call_ffi(:rnp_op_encrypt_set_flags, @ptr, flags)
+    end
+
     # Execute the operation.
     #
     # This should only be called once.

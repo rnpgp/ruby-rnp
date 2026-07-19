@@ -86,6 +86,23 @@ class Rnp
       to_callback(io.method(:write))
     end
 
+    # Create an Output that ASCII-armors data, writing the armored stream
+    # to another output.
+    #
+    # @param base [Output] the output the armored data will be written to.
+    #   It is retained by the returned output, as the armored stream
+    #   references it internally.
+    # @param type [String] the armor type ('message', 'public key',
+    #   'secret key', 'signature', 'cleartext')
+    # @return [Output]
+    def self.to_armor(base, type)
+      pptr = FFI::MemoryPointer.new(:pointer)
+      Rnp.call_ffi(:rnp_output_to_armor, base.ptr, pptr, type)
+      # pass base as the second argument so it is not garbage collected
+      # before this output
+      Output.new(pptr.read_pointer, base)
+    end
+
     # Write to the output.
     #
     # @param strings [String]
@@ -109,6 +126,28 @@ class Rnp
       Rnp.call_ffi(:rnp_output_memory_get_buf, @ptr, pptr, len, false)
       buf = pptr.read_pointer
       buf.read_bytes(len.read(:size_t)) unless buf.null?
+    end
+
+    # Set the line length for armored output written to this output.
+    #
+    # @note This is only valid for outputs created via {.to_armor}.
+    #
+    # @param llen [Integer] the line length in characters (16..76)
+    # @return [void]
+    def armor_line_length=(llen)
+      Rnp.call_ffi(:rnp_output_armor_set_line_length, @ptr, llen)
+    end
+
+    # Finish writing to the output.
+    #
+    # @note For most output types this is not needed (destruction of the
+    #   output finishes it implicitly). It is useful to deterministically
+    #   finalize an output without destroying it, e.g. to write out the
+    #   trailer of an armored output created via {.to_armor}.
+    #
+    # @return [void]
+    def finish
+      Rnp.call_ffi(:rnp_output_finish, @ptr)
     end
 
     # @api private

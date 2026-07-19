@@ -427,3 +427,36 @@ describe Rnp do
   end # generate_key
 end
 
+
+describe Rnp.instance_method(:request_password),
+         skip: !LibRnp::HAVE_RNP_REQUEST_PASSWORD do
+  let(:rnp) do
+    rnp = Rnp.new
+    rnp.load_keys(format: 'GPG',
+                  input: Rnp::Input.from_path('spec/data/keyrings/gpg/secring.gpg'))
+    rnp
+  end
+
+  it 'requests a password via the password provider' do
+    received = nil
+    rnp.password_provider = lambda do |key, reason|
+      received = [key&.keyid, reason]
+      'the-password'
+    end
+    key = rnp.find_key(userid: 'key0-uid1')
+    expect(rnp.request_password('test context', key: key)).to eql 'the-password'
+    expect(received).to eql [key.keyid, 'test context']
+  end
+
+  it 'works without a key' do
+    rnp.password_provider = 'literal-password'
+    expect(rnp.request_password('custom context')).to eql 'literal-password'
+  end
+
+  it 'raises an error when no password is provided' do
+    rnp.password_provider = nil
+    expect do
+      rnp.request_password('custom context')
+    end.to raise_error(Rnp::Error)
+  end
+end

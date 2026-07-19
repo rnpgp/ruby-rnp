@@ -263,6 +263,28 @@ class Rnp
     Rnp::Key.new(pkey) unless pkey.null?
   end
 
+  # Request a password via the configured password provider (see
+  # {#password_provider=}).
+  #
+  # @param context [String] string describing the purpose of the password
+  #   request. Any custom value may be used, as far as the password
+  #   provider handles it.
+  # @param key [Key, nil] the key for which the password is requested
+  # @return [String] the requested password
+  def request_password(context, key: nil)
+    pptr = FFI::MemoryPointer.new(:pointer)
+    Rnp.call_ffi(:rnp_request_password, @ptr, key&.ptr, context, pptr)
+    begin
+      ppassword = pptr.read_pointer
+      password = ppassword.read_string unless ppassword.null?
+      # securely clear the buffer before freeing it
+      LibRnp.rnp_buffer_clear(ppassword, password.bytesize) if password
+      password
+    ensure
+      LibRnp.rnp_buffer_destroy(ppassword)
+    end
+  end
+
   # @!method userids
   # Get a list of all userids.
   #

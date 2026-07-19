@@ -344,3 +344,27 @@ describe Rnp.instance_method(:start_generate_subkey),
     end
   end
 end
+
+describe Rnp::Generate.instance_method(:request_password=),
+         skip: !LibRnp::HAVE_RNP_OP_GENERATE_SET_REQUEST_PASSWORD do
+  it "requests the password via the password provider" do
+    rnp = Rnp.new
+    rnp.password_provider = "gen-password"
+    op = rnp.start_generate(type: "RSA")
+    op.bits = 1024
+    op.userid = "protected-gen"
+    op.request_password = true
+    op.execute
+    expect(op.key.protected?).to be true
+    expect(op.key.unlock("gen-password").locked?).to be false
+  end
+
+  it "generates an unprotected key by default" do
+    rnp = Rnp.new
+    op = rnp.start_generate(type: "RSA")
+    op.bits = 1024
+    op.userid = "unprotected-gen"
+    op.execute
+    expect(op.key.protected?).to be false
+  end
+end

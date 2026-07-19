@@ -144,3 +144,50 @@ describe Rnp::Encrypt do
   end
 end # expert encryption
 
+
+describe Rnp::Encrypt.instance_method(:flags=),
+         skip: !LibRnp::HAVE_RNP_OP_ENCRYPT_SET_FLAGS do
+  let(:rnp) do
+    rnp = Rnp.new
+    rnp.load_keys(format: 'GPG',
+                  input: Rnp::Input.from_path('spec/data/keyrings/gpg/secring.gpg'))
+    rnp.password_provider = 'password'
+    rnp
+  end
+
+  it 'encrypts already-signed data without wrapping it in a literal data packet' do
+    key = rnp.find_key(userid: 'key0-uid1')
+    signed = rnp.sign(input: Rnp::Input.from_string('data'),
+                      signers: [key],
+                      armored: false)
+
+    # without NOWRAP the signed message is treated as opaque data and
+    # wrapped in a literal data packet
+    output = Rnp::Output.to_string
+    encrypt = rnp.start_encrypt(input: Rnp::Input.from_string(signed),
+                                output: output)
+    encrypt.add_recipient(key)
+    encrypt.execute
+    decrypted = Rnp::Output.to_string
+    verify = rnp.start_verify(input: Rnp::Input.from_string(output.string),
+                              output: decrypted)
+    verify.execute
+    expect(decrypted.string).to eql signed
+    expect(verify.signatures).to be_empty
+
+    # with NOWRAP the signed message is encrypted as-is, so its signature
+    # is verified after decryption
+    output = Rnp::Output.to_string
+    encrypt = rnp.start_encrypt(input: Rnp::Input.from_string(signed),
+                                output: output)
+    encrypt.flags = LibRnp::RNP_ENCRYPT_NOWRAP
+    encrypt.add_recipient(key)
+    encrypt.execute
+    decrypted = Rnp::Output.to_string
+    verify = rnp.start_verify(input: Rnp::Input.from_string(output.string),
+                              output: decrypted)
+    verify.execute
+    expect(decrypted.string).to eql 'data'
+    expect(verify.good?).to be true
+  end
+end
