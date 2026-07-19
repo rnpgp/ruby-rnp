@@ -41,6 +41,80 @@ class Rnp
       Rnp.call_ffi(:rnp_op_verify_execute, @ptr)
     end
 
+    # Set flags which control the data verification/decryption process.
+    #
+    # @note All flags are set at once: flags not present in a subsequent
+    #   call will be unset.
+    #
+    # @param flags [Integer] OR-ed combination of the LibRnp::RNP_VERIFY_*
+    #   constants
+    # @return [void]
+    def flags=(flags)
+      Rnp.call_ffi(:rnp_op_verify_set_flags, @ptr, flags)
+    end
+
+    # Get the format of the literal data stored in the message, if available.
+    #
+    # @return [String, nil] the single-character format ('b' for binary,
+    #   't' for text, 'u' for UTF-8 text, 'l' for local) or nil if this
+    #   information is not available.
+    def format
+      pformat = FFI::MemoryPointer.new(:uint8)
+      Rnp.call_ffi(:rnp_op_verify_get_format, @ptr, pformat)
+      format = pformat.read(:uint8)
+      format.zero? ? nil : format.chr
+    end
+
+    # Get a list of recipients (public keys) the message was encrypted to.
+    #
+    # @return [Array<Recipient>]
+    def recipients
+      pcount = FFI::MemoryPointer.new(:size_t)
+      Rnp.call_ffi(:rnp_op_verify_get_recipient_count, @ptr, pcount)
+      pptr = FFI::MemoryPointer.new(:pointer)
+      (0...pcount.read(:size_t)).map do |idx|
+        Rnp.call_ffi(:rnp_op_verify_get_recipient_at, @ptr, idx, pptr)
+        Recipient.new(pptr.read_pointer)
+      end
+    end
+
+    # Get the recipient whose key was used to decrypt the message.
+    #
+    # @return [Recipient, nil] nil if the message was not decrypted with
+    #   a public key (or not decrypted at all).
+    def used_recipient
+      pptr = FFI::MemoryPointer.new(:pointer)
+      Rnp.call_ffi(:rnp_op_verify_get_used_recipient, @ptr, pptr)
+      precipient = pptr.read_pointer
+      Recipient.new(precipient) unless precipient.null?
+    end
+
+    # Get a list of password-based (symenc) entries the message was
+    # encrypted to.
+    #
+    # @return [Array<Symenc>]
+    def symencs
+      pcount = FFI::MemoryPointer.new(:size_t)
+      Rnp.call_ffi(:rnp_op_verify_get_symenc_count, @ptr, pcount)
+      pptr = FFI::MemoryPointer.new(:pointer)
+      (0...pcount.read(:size_t)).map do |idx|
+        Rnp.call_ffi(:rnp_op_verify_get_symenc_at, @ptr, idx, pptr)
+        Symenc.new(pptr.read_pointer)
+      end
+    end
+
+    # Get the password-based (symenc) entry that was used to decrypt the
+    # message.
+    #
+    # @return [Symenc, nil] nil if the message was not decrypted with
+    #   a password (or not decrypted at all).
+    def used_symenc
+      pptr = FFI::MemoryPointer.new(:pointer)
+      Rnp.call_ffi(:rnp_op_verify_get_used_symenc, @ptr, pptr)
+      psymenc = pptr.read_pointer
+      Symenc.new(psymenc) unless psymenc.null?
+    end
+
     # Check if all signatures are good.
     #
     # @return [Boolean] true if all signatures are valid and not expired.
@@ -145,6 +219,77 @@ class Rnp
         pptr = FFI::MemoryPointer.new(:pointer)
         Rnp.call_ffi(:rnp_op_verify_signature_get_handle, @ptr, pptr)
         Rnp::Signature.new(pptr.read_pointer)
+      end
+    end
+
+    # Class representing a public-key recipient of an encrypted message.
+    #
+    # This is a value object: the information is copied out of the
+    # verification operation when the object is created.
+    class Recipient
+      # The keyid of the key the message was encrypted to. This may be all
+      # zeroes for a hidden recipient.
+      # @return [String]
+      attr_reader :keyid
+      # The public key algorithm used to encrypt to this recipient.
+      # @return [String]
+      attr_reader :alg
+
+      # @api private
+      def initialize(ptr)
+        raise Rnp::Error, 'NULL pointer' if ptr.null?
+        @keyid = Recipient.string_property(:rnp_recipient_get_keyid, ptr)
+        @alg = Recipient.string_property(:rnp_recipient_get_alg, ptr)
+      end
+
+      # @api private
+      def self.string_property(func, ptr)
+        pptr = FFI::MemoryPointer.new(:pointer)
+        Rnp.call_ffi(func, ptr, pptr)
+        begin
+          pvalue = pptr.read_pointer
+          pvalue.read_string unless pvalue.null?
+        ensure
+          LibRnp.rnp_buffer_destroy(pvalue)
+        end
+      end
+    end
+
+    # Class representing a password-based (symenc) entry of an encrypted
+    # message.
+    #
+    # This is a value object: the information is copied out of the
+    # verification operation when the object is created.
+    class Symenc
+      # The cipher used to encrypt the data encryption key (or the whole
+      # message).
+      # @return [String]
+      attr_reader :cipher
+      # The AEAD algorithm used, or 'None'.
+      # @return [String]
+      attr_reader :aead_alg
+      # The hash algorithm used to derive the key from the password.
+      # @return [String]
+      attr_reader :hash_alg
+      # The string-to-key type ('Simple', 'Salted' or
+      # 'Iterated and salted').
+      # @return [String]
+      attr_reader :s2k_type
+      # The number of iterations for an iterated-and-salted s2k
+      # (0 otherwise).
+      # @return [Integer]
+      attr_reader :s2k_iterations
+
+      # @api private
+      def initialize(ptr)
+        raise Rnp::Error, 'NULL pointer' if ptr.null?
+        @cipher = Recipient.string_property(:rnp_symenc_get_cipher, ptr)
+        @aead_alg = Recipient.string_property(:rnp_symenc_get_aead_alg, ptr)
+        @hash_alg = Recipient.string_property(:rnp_symenc_get_hash_alg, ptr)
+        @s2k_type = Recipient.string_property(:rnp_symenc_get_s2k_type, ptr)
+        piterations = FFI::MemoryPointer.new(:uint32)
+        Rnp.call_ffi(:rnp_symenc_get_s2k_iterations, ptr, piterations)
+        @s2k_iterations = piterations.read(:uint32)
       end
     end
 
