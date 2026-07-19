@@ -433,6 +433,75 @@ class Rnp
       Time.at(ptime.read(:uint32))
     end
 
+    # Get the OpenPGP version of the key.
+    #
+    # @return [Integer]
+    def version
+      pversion = FFI::MemoryPointer.new(:uint32)
+      Rnp.call_ffi(:rnp_key_get_version, @ptr, pversion)
+      pversion.read(:uint32)
+    end
+
+    # Check whether the key is expired.
+    #
+    # @note While an expired key cannot be used to generate new signatures
+    #   or encrypt to, it can still be used to verify older signatures and
+    #   decrypt previously encrypted data.
+    #
+    # @return [Boolean]
+    def expired?
+      bool_property(:rnp_key_is_expired)
+    end
+
+    # Check whether the public key is valid. This includes checks of the
+    # self-signatures, expiration times, revocations, etc.
+    #
+    # @return [Boolean]
+    def valid?
+      bool_property(:rnp_key_is_valid)
+    end
+
+    # Get the time till which the key can be considered valid. This takes
+    # into account not only the key's expiration, but revocations as well
+    # (and, for a subkey, the primary key's validity time).
+    #
+    # @return [Time, nil] nil if the key never expires
+    def valid_till
+      ptime = FFI::MemoryPointer.new(:uint64)
+      Rnp.call_ffi(:rnp_key_valid_till64, @ptr, ptime)
+      time = ptime.read(:uint64)
+      time == (1 << 64) - 1 ? nil : Time.at(time)
+    end
+
+    # Get the fingerprint of the primary key.
+    #
+    # @note This is only valid for subkeys and raises an error for a
+    #   primary key.
+    #
+    # @return [String]
+    def primary_fingerprint
+      string_property(:rnp_key_get_primary_fprint)
+    end
+
+    # Get a list of the designated revokers of the key (keys which are
+    # allowed to revoke this key).
+    #
+    # @return [Array<String>] a list of revoker key fingerprints
+    def revokers
+      pcount = FFI::MemoryPointer.new(:size_t)
+      Rnp.call_ffi(:rnp_key_get_revoker_count, @ptr, pcount)
+      pptr = FFI::MemoryPointer.new(:pointer)
+      (0...pcount.read(:size_t)).map do |idx|
+        Rnp.call_ffi(:rnp_key_get_revoker_at, @ptr, idx, pptr)
+        begin
+          prevoker = pptr.read_pointer
+          prevoker.read_string unless prevoker.null?
+        ensure
+          LibRnp.rnp_buffer_destroy(prevoker)
+        end
+      end
+    end
+
     # Get the key's revocation signature, if any.
     #
     # @return [Signature, nil] nil if there is no valid revocation
@@ -442,6 +511,55 @@ class Rnp
       Rnp.call_ffi(:rnp_key_get_revocation_signature, @ptr, pptr)
       psig = pptr.read_pointer
       Signature.new(psig) unless psig.null?
+    end
+
+    # Get the type of protection used for the secret key data.
+    #
+    # @return [String] one of 'None', 'Encrypted', 'Encrypted-Hashed',
+    #   'GPG-None', 'GPG-Smartcard' or 'Unknown'
+    def protection_type
+      string_property(:rnp_key_get_protection_type)
+    end
+
+    # Get the mode in which the secret key data is encrypted.
+    #
+    # @return [String] one of 'None', 'Unknown', 'CFB', 'CBC' or 'OCB'
+    def protection_mode
+      string_property(:rnp_key_get_protection_mode)
+    end
+
+    # Get the cipher used to encrypt the secret key data.
+    #
+    # @note This raises an error if the secret key data is not available
+    #   or not encrypted.
+    #
+    # @return [String]
+    def protection_cipher
+      string_property(:rnp_key_get_protection_cipher)
+    end
+
+    # Get the hash used to derive the secret-key-data encrypting key from
+    # the password.
+    #
+    # @note This raises an error if the secret key data is not available
+    #   or not encrypted.
+    #
+    # @return [String]
+    def protection_hash
+      string_property(:rnp_key_get_protection_hash)
+    end
+
+    # Get the number of iterations used to derive the encrypting key from
+    # the password.
+    #
+    # @note This raises an error if the secret key data is not available
+    #   or not encrypted.
+    #
+    # @return [Integer]
+    def protection_iterations
+      piterations = FFI::MemoryPointer.new(:size_t)
+      Rnp.call_ffi(:rnp_key_get_protection_iterations, @ptr, piterations)
+      piterations.read(:size_t)
     end
 
     # Start building a certification signature over a userid, issued by
