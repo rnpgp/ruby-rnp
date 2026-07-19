@@ -238,6 +238,12 @@ module LibRnp
     rnp_output_finish: [%i[pointer], :uint32],
     # packet dumping (human-readable)
     rnp_dump_packets_to_output: [%i[pointer pointer uint32], :uint32],
+    # stdio convenience streams
+    rnp_input_from_stdin: [%i[pointer], :uint32],
+    rnp_output_to_stdout: [%i[pointer], :uint32],
+    # Curve25519 secret key bit tweaking
+    rnp_key_25519_bits_tweak: [%i[pointer], :uint32],
+    rnp_key_25519_bits_tweaked: [%i[pointer pointer], :uint32],
   }.each do |name, signature|
     present = !ffi_libraries[0].find_function(name.to_s).nil?
     if !present
@@ -329,6 +335,39 @@ module LibRnp
   attach_function :rnp_key_handle_destroy,
                   %i[pointer],
                   :uint32
+  attach_function :rnp_uid_get_data,
+                  %i[pointer pointer pointer],
+                  :uint32
+  attach_function :rnp_uid_get_type,
+                  %i[pointer pointer],
+                  :uint32
+  attach_function :rnp_uid_is_primary,
+                  %i[pointer pointer],
+                  :uint32
+  attach_function :rnp_uid_is_valid,
+                  %i[pointer pointer],
+                  :uint32
+  attach_function :rnp_uid_get_revocation_signature,
+                  %i[pointer pointer],
+                  :uint32
+  attach_function :rnp_uid_remove,
+                  %i[pointer pointer],
+                  :uint32
+  attach_function :rnp_key_revoke,
+                  %i[pointer uint32 string string string],
+                  :uint32
+  attach_function :rnp_key_set_expiration,
+                  %i[pointer uint32],
+                  :uint32
+  attach_function :rnp_key_get_default_key,
+                  %i[pointer string uint32 pointer],
+                  :uint32
+  attach_function :rnp_key_export_autocrypt,
+                  %i[pointer pointer string pointer uint32],
+                  :uint32
+  attach_function :rnp_key_export_revocation,
+                  %i[pointer pointer uint32 string string string],
+                  :uint32
   attach_function :rnp_generate_key_json,
                   %i[pointer string pointer],
                   :uint32
@@ -407,6 +446,12 @@ module LibRnp
   attach_function :rnp_op_sign_set_compression,
                   %i[pointer string int],
                   :uint32
+  attach_function :rnp_op_sign_set_file_name,
+                  %i[pointer string],
+                  :uint32
+  attach_function :rnp_op_sign_set_file_mtime,
+                  %i[pointer uint32],
+                  :uint32
   attach_function :rnp_op_sign_set_armor,
                   %i[pointer bool],
                   :uint32
@@ -442,6 +487,9 @@ module LibRnp
                   :uint32
   attach_function :rnp_op_verify_get_file_info,
                   %i[pointer pointer pointer],
+                  :uint32
+  attach_function :rnp_op_verify_get_protection_info,
+                  %i[pointer pointer pointer pointer],
                   :uint32
   attach_function :rnp_op_verify_destroy,
                   %i[pointer],
@@ -488,6 +536,12 @@ module LibRnp
   attach_function :rnp_output_to_null,
                   %i[pointer],
                   :uint32
+  attach_function :rnp_output_to_file,
+                  %i[pointer string uint32],
+                  :uint32
+  attach_function :rnp_output_pipe,
+                  %i[pointer pointer],
+                  :uint32
   attach_function :rnp_output_destroy,
                   %i[pointer],
                   :uint32
@@ -521,6 +575,15 @@ module LibRnp
   attach_function :rnp_op_encrypt_set_compression,
                   %i[pointer string int],
                   :uint32
+  attach_function :rnp_op_encrypt_set_file_name,
+                  %i[pointer string],
+                  :uint32
+  attach_function :rnp_op_encrypt_set_file_mtime,
+                  %i[pointer uint32],
+                  :uint32
+  attach_function :rnp_op_encrypt_set_aead_bits,
+                  %i[pointer int],
+                  :uint32
   attach_function :rnp_op_encrypt_execute,
                   %i[pointer],
                   :uint32
@@ -553,6 +616,18 @@ module LibRnp
   RNP_KEY_EXPORT_PUBLIC =  (1 << 1)
   RNP_KEY_EXPORT_SECRET =  (1 << 2)
   RNP_KEY_EXPORT_SUBKEYS = (1 << 3)
+  RNP_KEY_EXPORT_BASE64 =  (1 << 9)
+
+  # flags for rnp_output_to_file
+  RNP_OUTPUT_FILE_OVERWRITE = (1 << 0)
+  RNP_OUTPUT_FILE_RANDOM = (1 << 1)
+
+  # flags for default key selection
+  RNP_KEY_SUBKEYS_ONLY = (1 << 0)
+
+  # user id types
+  RNP_USER_ID = 1
+  RNP_USER_ATTR = 2
 
   RNP_LOAD_SAVE_PUBLIC_KEYS = (1 << 0)
   RNP_LOAD_SAVE_SECRET_KEYS = (1 << 1)
@@ -625,6 +700,7 @@ module LibRnp
   RNP_ERROR_BAD_FORMAT =        0x10000001
   RNP_ERROR_SIGNATURE_INVALID = 0x12000002
   RNP_ERROR_BAD_PASSWORD =      0x12000004
+  RNP_ERROR_KEY_NOT_FOUND =     0x12000005
   RNP_ERROR_NO_SUITABLE_KEY =   0x12000006
   RNP_ERROR_SIGNATURE_EXPIRED = 0x1200000B
 end # module
