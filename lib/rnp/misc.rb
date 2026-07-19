@@ -324,6 +324,11 @@ class Rnp
     # Now at least one valid signature is required for success
     "require-single-valid-signature" => Rnp.version >= Rnp.version("0.16.1") ||
       Rnp.commit_time >= 1661781294,
+    # rnp_signature_is_valid() was extended to return the validation status
+    # of document signatures and to revalidate key signatures
+    # (RNP_SIGNATURE_REVALIDATE).
+    "signature-validity-status" => Rnp.version >= Rnp.version("0.18.0") ||
+      Rnp.commit_time >= 1742391792,
   }.freeze
 
   def self.has?(feature)

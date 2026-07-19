@@ -131,8 +131,12 @@ describe Rnp::KeySignature,
       signer.start_certification(target.uids[0]).sign
     end
 
-    describe Rnp::Key.instance_method(:remove_signature),
-             skip: !LibRnp::HAVE_RNP_SIGNATURE_REMOVE do
+    # Note: no per-method skip metadata here. The setup above requires
+    # the key certification API (librnp 0.18+), which gates the whole
+    # file; an inner 'skip: false' (e.g. when the removal API is present
+    # but the certification API is not, as in librnp 0.17.x) would
+    # override the outer skip and run the example anyway.
+    describe Rnp::Key.instance_method(:remove_signature) do
       it 'removes a single signature' do
         sig = target.uids[0].signatures.find { |s| s.keyid == signer.keyid }
         expect(sig).to_not be_nil
@@ -142,8 +146,7 @@ describe Rnp::KeySignature,
       end
     end
 
-    describe Rnp::Key.instance_method(:remove_signatures),
-             skip: !LibRnp::HAVE_RNP_KEY_REMOVE_SIGNATURES do
+    describe Rnp::Key.instance_method(:remove_signatures) do
       it 'removes non-self signatures' do
         expect(target.uids[0].signatures.map(&:keyid))
           .to include signer.keyid

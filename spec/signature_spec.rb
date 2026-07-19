@@ -192,7 +192,8 @@ describe Rnp::Signature do
         expect(sig.valid?).to be true
       end
 
-      it 'revalidates the signature' do
+      it 'revalidates the signature',
+         skip: !Rnp.has?('signature-validity-status') do
         expect(sig.valid?(revalidate: true)).to be true
       end
     end
@@ -272,7 +273,8 @@ describe Rnp::Signature do
       expect(sig.fingerprint).to eql key.fingerprint
     end
 
-    it 'is valid' do
+    it 'is valid',
+       skip: !Rnp.has?('signature-validity-status') do
       expect(sig.valid?).to be true
     end
 
