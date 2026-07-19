@@ -91,3 +91,27 @@ describe Rnp::Verify do
   end
 end
 
+
+describe 'sign file metadata' do
+  it 'embeds the file name and mtime in the literal data packet' do
+    rnp = Rnp.new
+    rnp.load_keys(format: 'GPG',
+                  input: Rnp::Input.from_path('spec/data/keyrings/gpg/secring.gpg'))
+    rnp.password_provider = 'password'
+    key = rnp.find_key(userid: 'key0-uid1')
+    output = Rnp::Output.to_string
+    sign = rnp.start_sign(input: Rnp::Input.from_string('data'),
+                          output: output)
+    sign.file_name = 'document.txt'
+    sign.file_mtime = 1_450_000_000
+    sign.add_signer(key)
+    sign.execute
+
+    verify = rnp.start_verify(input: Rnp::Input.from_string(output.string),
+                              output: Rnp::Output.to_null)
+    verify.execute
+    info = verify.file_info
+    expect(info[:file_name]).to eql 'document.txt'
+    expect(info[:file_mtime].to_i).to eql 1_450_000_000
+  end
+end

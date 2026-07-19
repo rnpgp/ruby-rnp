@@ -154,3 +154,77 @@ describe Rnp::Verify do
     end
   end
 end
+
+describe 'message introspection' do
+  let(:rnp) do
+    rnp = Rnp.new
+    rnp.load_keys(format: 'GPG',
+                  input: Rnp::Input.from_path('spec/data/keyrings/gpg/secring.gpg'))
+    rnp.password_provider = 'password'
+    rnp
+  end
+  let(:key) { rnp.find_key(userid: 'key0-uid1') }
+
+  describe Rnp::Verify.instance_method(:protection_info) do
+    it 'reports no protection for a signed-only message' do
+      signature = rnp.sign(input: Rnp::Input.from_string('data'),
+                           signers: [key],
+                           armored: false)
+      verify = rnp.start_verify(input: Rnp::Input.from_string(signature),
+                                output: Rnp::Output.to_null)
+      verify.execute
+      info = verify.protection_info
+      expect(info[:mode]).to eql 'none'
+      expect(info[:cipher]).to eql 'none'
+      expect(info[:valid]).to be false
+    end
+
+    it 'reports cfb-mdc protection for an encrypted message' do
+      encrypted = rnp.encrypt(input: Rnp::Input.from_string('data'),
+                              recipients: [key],
+                              armored: false)
+      verify = rnp.start_verify(input: Rnp::Input.from_string(encrypted),
+                                output: Rnp::Output.to_null)
+      verify.execute
+      info = verify.protection_info
+      expect(info[:mode]).to eql 'cfb-mdc'
+      expect(info[:cipher]).to eql 'AES256'
+      expect(info[:valid]).to be true
+    end
+
+    it 'reports aead protection when AEAD is used' do
+      output = Rnp::Output.to_string
+      encrypt = rnp.start_encrypt(input: Rnp::Input.from_string('data'),
+                                  output: output)
+      encrypt.aead = 'EAX'
+      encrypt.aead_bits = 8
+      encrypt.add_recipient(key)
+      encrypt.execute
+      verify = rnp.start_verify(input: Rnp::Input.from_string(output.string),
+                                output: Rnp::Output.to_null)
+      verify.execute
+      info = verify.protection_info
+      expect(info[:mode]).to eql 'aead-eax'
+      expect(info[:cipher]).to eql 'AES256'
+      expect(info[:valid]).to be true
+    end
+  end
+
+  describe Rnp::Verify.instance_method(:file_info) do
+    it 'returns the embedded file name and mtime' do
+      output = Rnp::Output.to_string
+      sign = rnp.start_sign(input: Rnp::Input.from_string('data'),
+                            output: output)
+      sign.file_name = 'report.txt'
+      sign.file_mtime = Time.at(1_500_000_000)
+      sign.add_signer(key)
+      sign.execute
+      verify = rnp.start_verify(input: Rnp::Input.from_string(output.string),
+                                output: Rnp::Output.to_null)
+      verify.execute
+      info = verify.file_info
+      expect(info[:file_name]).to eql 'report.txt'
+      expect(info[:file_mtime].to_i).to eql 1_500_000_000
+    end
+  end
+end

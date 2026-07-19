@@ -187,6 +187,36 @@ class Rnp
       Rnp.call_ffi(:rnp_op_encrypt_set_flags, @ptr, flags)
     end
 
+    # Set the internally stored file name for the data being encrypted.
+    #
+    # @param file_name [String] the file name. May be an empty string.
+    #   The special value '_CONSOLE' may have specific processing (see
+    #   RFC 4880 for the details).
+    def file_name=(file_name)
+      Rnp.call_ffi(:rnp_op_encrypt_set_file_name, @ptr, file_name)
+    end
+
+    # Set the internally stored file modification date for the data being
+    # encrypted.
+    #
+    # @param file_mtime [Time, Integer] the modification date. As an
+    #   integer, this is the number of seconds since the unix epoch.
+    def file_mtime=(file_mtime)
+      file_mtime = file_mtime.to_i if file_mtime.is_a?(::Time)
+      Rnp.call_ffi(:rnp_op_encrypt_set_file_mtime, @ptr, file_mtime)
+    end
+
+    # Set the chunk length for AEAD mode, via the number of chunk size
+    # bits (see the OpenPGP AEAD specification).
+    #
+    # @note This is only valid when an AEAD algorithm is used (see
+    #   {#aead=}).
+    #
+    # @param bits [Integer] the number of bits (0..16)
+    def aead_bits=(bits)
+      Rnp.call_ffi(:rnp_op_encrypt_set_aead_bits, @ptr, bits)
+    end
+
     # Execute the operation.
     #
     # This should only be called once.

@@ -69,6 +69,55 @@ class Rnp
       format.zero? ? nil : format.chr
     end
 
+    # Get information about the data protection (encryption) used in the
+    # processed message.
+    #
+    # @return [Hash<Symbol>] a hash with the following keys:
+    #   * :mode [String] the encryption mode: 'none' (not encrypted),
+    #     'cfb', 'cfb-mdc', 'aead-ocb' or 'aead-eax'
+    #   * :cipher [String] the symmetric cipher used, or nil if the
+    #     message was not encrypted
+    #   * :valid [Boolean] true if the message integrity protection
+    #     (MDC or AEAD) was used and validated successfully
+    def protection_info
+      pmode = FFI::MemoryPointer.new(:pointer)
+      pcipher = FFI::MemoryPointer.new(:pointer)
+      pvalid = FFI::MemoryPointer.new(:bool)
+      Rnp.call_ffi(:rnp_op_verify_get_protection_info, @ptr, pmode, pcipher,
+                   pvalid)
+      begin
+        pvalue = pmode.read_pointer
+        mode = pvalue.read_string unless pvalue.null?
+        pvalue = pcipher.read_pointer
+        cipher = pvalue.read_string unless pvalue.null?
+        { mode: mode, cipher: cipher, valid: pvalid.read(:bool) }
+      ensure
+        LibRnp.rnp_buffer_destroy(pmode.read_pointer)
+        LibRnp.rnp_buffer_destroy(pcipher.read_pointer)
+      end
+    end
+
+    # Get the file name and modification time embedded in the message's
+    # literal data packet. Makes sense only for embedded signature
+    # verification.
+    #
+    # @return [Hash<Symbol>] a hash with the following keys:
+    #   * :file_name [String, nil] the embedded file name, if any
+    #   * :file_mtime [Time] the embedded modification time (the unix
+    #     epoch if not available)
+    def file_info
+      pfilename = FFI::MemoryPointer.new(:pointer)
+      pmtime = FFI::MemoryPointer.new(:uint32)
+      Rnp.call_ffi(:rnp_op_verify_get_file_info, @ptr, pfilename, pmtime)
+      begin
+        pvalue = pfilename.read_pointer
+        file_name = pvalue.read_string unless pvalue.null?
+        { file_name: file_name, file_mtime: Time.at(pmtime.read(:uint32)) }
+      ensure
+        LibRnp.rnp_buffer_destroy(pfilename.read_pointer)
+      end
+    end
+
     # Get a list of recipients (public keys) the message was encrypted to.
     #
     # @return [Array<Recipient>]

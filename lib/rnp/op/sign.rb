@@ -119,6 +119,26 @@ class Rnp
       Rnp.call_ffi(:rnp_op_sign_set_expiration_time, @ptr, expiration_time)
     end
 
+    # Set the input's file name. Makes sense only for an embedded
+    # signature.
+    #
+    # @param file_name [String] the source data file name. The special
+    #   value '_CONSOLE' may be used to mark the message as 'for your
+    #   eyes only' (see RFC 4880 for the details).
+    def file_name=(file_name)
+      Rnp.call_ffi(:rnp_op_sign_set_file_name, @ptr, file_name)
+    end
+
+    # Set the input's file modification date. Makes sense only for an
+    # embedded signature.
+    #
+    # @param file_mtime [Time, Integer] the modification date. As an
+    #   integer, this is the number of seconds since the unix epoch.
+    def file_mtime=(file_mtime)
+      file_mtime = file_mtime.to_i if file_mtime.is_a?(::Time)
+      Rnp.call_ffi(:rnp_op_sign_set_file_mtime, @ptr, file_mtime)
+    end
+
     # Execute the operation.
     #
     # This should only be called once.

@@ -191,3 +191,33 @@ describe Rnp::Encrypt.instance_method(:flags=),
     expect(verify.good?).to be true
   end
 end
+
+describe 'encrypt file metadata' do
+  let(:rnp) do
+    rnp = Rnp.new
+    rnp.load_keys(format: 'GPG',
+                  input: Rnp::Input.from_path('spec/data/keyrings/gpg/secring.gpg'))
+    rnp.password_provider = 'password'
+    rnp
+  end
+
+  it 'embeds the file name and mtime in the literal data packet' do
+    key = rnp.find_key(userid: 'key0-uid1')
+    output = Rnp::Output.to_string
+    encrypt = rnp.start_encrypt(input: Rnp::Input.from_string('data'),
+                                output: output)
+    encrypt.file_name = 'secret.bin'
+    encrypt.file_mtime = Time.at(1_400_000_000)
+    encrypt.add_recipient(key)
+    encrypt.execute
+
+    decrypted = Rnp::Output.to_string
+    verify = rnp.start_verify(input: Rnp::Input.from_string(output.string),
+                              output: decrypted)
+    verify.execute
+    expect(decrypted.string).to eql 'data'
+    info = verify.file_info
+    expect(info[:file_name]).to eql 'secret.bin'
+    expect(info[:file_mtime].to_i).to eql 1_400_000_000
+  end
+end
