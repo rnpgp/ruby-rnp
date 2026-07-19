@@ -709,7 +709,7 @@ class Rnp
           next if phandle.nil?
           Rnp.call_ffi(:rnp_key_get_uid_at, @ptr, i, pptr)
           puserid = pptr.read_pointer
-          yield UserID.new(phandle, puserid.read_string) unless puserid.null?
+          yield UserID.new(phandle, puserid.read_string, self) unless puserid.null?
           phandle = nil
         ensure
           LibRnp.rnp_uid_handle_destroy(phandle)
