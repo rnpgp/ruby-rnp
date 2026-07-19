@@ -224,3 +224,38 @@ describe Rnp.method(:supported_features),
     expect(Rnp.supported_features('symmetric algorithm').class).to be Array
   end
 end
+
+describe Rnp.method(:backend_string),
+         skip: !LibRnp::HAVE_RNP_BACKEND_STRING do
+  it 'returns the crypto backend name' do
+    expect(%w[Botan OpenSSL]).to include Rnp.backend_string
+  end
+end
+
+describe Rnp.method(:backend_version),
+         skip: !LibRnp::HAVE_RNP_BACKEND_VERSION do
+  it 'returns the crypto backend version' do
+    expect(Rnp.backend_version).to be_kind_of(String)
+    expect(Rnp.backend_version).to_not be_empty
+  end
+end
+
+describe Rnp.method(:dump_packets),
+         skip: !LibRnp::HAVE_RNP_DUMP_PACKETS_TO_OUTPUT do
+  it 'dumps packet information in human-readable format' do
+    dump = Rnp.dump_packets(
+      input: Rnp::Input.from_path('spec/data/keyrings/gpg/pubring.gpg')
+    )
+    expect(dump).to be_kind_of(String)
+    expect(dump).to include 'packet header'
+  end
+
+  it 'writes to the given output' do
+    output = Rnp::Output.to_string
+    Rnp.dump_packets(
+      input: Rnp::Input.from_path('spec/data/keyrings/gpg/pubring.gpg'),
+      output: output
+    )
+    expect(output.string).to include 'packet header'
+  end
+end

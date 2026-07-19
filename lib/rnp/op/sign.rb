@@ -15,9 +15,13 @@ class Rnp
     attr_reader :ptr
 
     # @api private
-    def initialize(ptr)
+    def initialize(ptr, input = nil, output = nil)
       raise Rnp::Error, 'NULL pointer' if ptr.null?
       @ptr = FFI::AutoPointer.new(ptr, self.class.method(:destroy))
+      # retain the input and output so they are not garbage collected
+      # before the operation is executed
+      @input = input
+      @output = output
     end
 
     # @api private
@@ -113,6 +117,26 @@ class Rnp
     #   plus this value. A value of 0 will create signatures that do not expire.
     def expiration_time=(expiration_time)
       Rnp.call_ffi(:rnp_op_sign_set_expiration_time, @ptr, expiration_time)
+    end
+
+    # Set the input's file name. Makes sense only for an embedded
+    # signature.
+    #
+    # @param file_name [String] the source data file name. The special
+    #   value '_CONSOLE' may be used to mark the message as 'for your
+    #   eyes only' (see RFC 4880 for the details).
+    def file_name=(file_name)
+      Rnp.call_ffi(:rnp_op_sign_set_file_name, @ptr, file_name)
+    end
+
+    # Set the input's file modification date. Makes sense only for an
+    # embedded signature.
+    #
+    # @param file_mtime [Time, Integer] the modification date. As an
+    #   integer, this is the number of seconds since the unix epoch.
+    def file_mtime=(file_mtime)
+      file_mtime = file_mtime.to_i if file_mtime.is_a?(::Time)
+      Rnp.call_ffi(:rnp_op_sign_set_file_mtime, @ptr, file_mtime)
     end
 
     # Execute the operation.

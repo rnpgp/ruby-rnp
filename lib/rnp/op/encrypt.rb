@@ -17,9 +17,13 @@ class Rnp
     attr_reader :ptr
 
     # @api private
-    def initialize(ptr)
+    def initialize(ptr, input = nil, output = nil)
       raise Rnp::Error, 'NULL pointer' if ptr.null?
       @ptr = FFI::AutoPointer.new(ptr, self.class.method(:destroy))
+      # retain the input and output so they are not garbage collected
+      # before the operation is executed
+      @input = input
+      @output = output
     end
 
     # @api private
@@ -171,6 +175,46 @@ class Rnp
     #        expire.
     def expiration_time=(expiration_time)
       Rnp.call_ffi(:rnp_op_encrypt_set_expiration_time, @ptr, expiration_time)
+    end
+
+    # Set additional encryption flags.
+    #
+    # @param flags [Integer] OR-ed combination of the LibRnp::RNP_ENCRYPT_*
+    #   constants. Currently only LibRnp::RNP_ENCRYPT_NOWRAP is supported:
+    #   it disables wrapping the data in a literal data packet, allowing to
+    #   encrypt already signed data.
+    def flags=(flags)
+      Rnp.call_ffi(:rnp_op_encrypt_set_flags, @ptr, flags)
+    end
+
+    # Set the internally stored file name for the data being encrypted.
+    #
+    # @param file_name [String] the file name. May be an empty string.
+    #   The special value '_CONSOLE' may have specific processing (see
+    #   RFC 4880 for the details).
+    def file_name=(file_name)
+      Rnp.call_ffi(:rnp_op_encrypt_set_file_name, @ptr, file_name)
+    end
+
+    # Set the internally stored file modification date for the data being
+    # encrypted.
+    #
+    # @param file_mtime [Time, Integer] the modification date. As an
+    #   integer, this is the number of seconds since the unix epoch.
+    def file_mtime=(file_mtime)
+      file_mtime = file_mtime.to_i if file_mtime.is_a?(::Time)
+      Rnp.call_ffi(:rnp_op_encrypt_set_file_mtime, @ptr, file_mtime)
+    end
+
+    # Set the chunk length for AEAD mode, via the number of chunk size
+    # bits (see the OpenPGP AEAD specification).
+    #
+    # @note This is only valid when an AEAD algorithm is used (see
+    #   {#aead=}).
+    #
+    # @param bits [Integer] the number of bits (0..16)
+    def aead_bits=(bits)
+      Rnp.call_ffi(:rnp_op_encrypt_set_aead_bits, @ptr, bits)
     end
 
     # Execute the operation.

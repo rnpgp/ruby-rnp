@@ -263,6 +263,28 @@ class Rnp
     Rnp::Key.new(pkey) unless pkey.null?
   end
 
+  # Request a password via the configured password provider (see
+  # {#password_provider=}).
+  #
+  # @param context [String] string describing the purpose of the password
+  #   request. Any custom value may be used, as far as the password
+  #   provider handles it.
+  # @param key [Key, nil] the key for which the password is requested
+  # @return [String] the requested password
+  def request_password(context, key: nil)
+    pptr = FFI::MemoryPointer.new(:pointer)
+    Rnp.call_ffi(:rnp_request_password, @ptr, key&.ptr, context, pptr)
+    begin
+      ppassword = pptr.read_pointer
+      password = ppassword.read_string unless ppassword.null?
+      # securely clear the buffer before freeing it
+      LibRnp.rnp_buffer_clear(ppassword, password.bytesize) if password
+      password
+    ensure
+      LibRnp.rnp_buffer_destroy(ppassword)
+    end
+  end
+
   # @!method userids
   # Get a list of all userids.
   #
@@ -620,7 +642,7 @@ class Rnp
     pptr = FFI::MemoryPointer.new(:pointer)
     Rnp.call_ffi(:rnp_op_encrypt_create, pptr, @ptr, input.ptr, output.ptr)
     pencrypt = pptr.read_pointer
-    Encrypt.new(pencrypt) unless pencrypt.null?
+    Encrypt.new(pencrypt, input, output) unless pencrypt.null?
   end
 
   # Import keys
@@ -694,14 +716,14 @@ class Rnp
     pptr = FFI::MemoryPointer.new(:pointer)
     Rnp.call_ffi(func, pptr, @ptr, input.ptr, output.ptr)
     psign = pptr.read_pointer
-    Rnp::Sign.new(psign) unless psign.null?
+    Rnp::Sign.new(psign, input, output) unless psign.null?
   end
 
   def _start_verify(func, io1, io2)
     pptr = FFI::MemoryPointer.new(:pointer)
     Rnp.call_ffi(func, pptr, @ptr, io1.ptr, io2.ptr)
     pverify = pptr.read_pointer
-    Verify.new(pverify) unless pverify.null?
+    Verify.new(pverify, io1, io2) unless pverify.null?
   end
 
   def simple_encrypt(enc, recipients: nil, signers: nil)

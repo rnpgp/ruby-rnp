@@ -427,3 +427,73 @@ describe Rnp do
   end # generate_key
 end
 
+
+describe Rnp.instance_method(:request_password),
+         skip: !LibRnp::HAVE_RNP_REQUEST_PASSWORD do
+  let(:rnp) do
+    rnp = Rnp.new
+    rnp.load_keys(format: 'GPG',
+                  input: Rnp::Input.from_path('spec/data/keyrings/gpg/secring.gpg'))
+    rnp
+  end
+
+  it 'requests a password via the password provider' do
+    received = nil
+    rnp.password_provider = lambda do |key, reason|
+      received = [key&.keyid, reason]
+      'the-password'
+    end
+    key = rnp.find_key(userid: 'key0-uid1')
+    expect(rnp.request_password('test context', key: key)).to eql 'the-password'
+    expect(received).to eql [key.keyid, 'test context']
+  end
+
+  it 'works without a key' do
+    rnp.password_provider = 'literal-password'
+    expect(rnp.request_password('custom context')).to eql 'literal-password'
+  end
+
+  it 'raises an error when no password is provided' do
+    rnp.password_provider = nil
+    expect do
+      rnp.request_password('custom context')
+    end.to raise_error(Rnp::Error)
+  end
+end
+
+describe 'operation input/output lifetime' do
+  let(:rnp) do
+    rnp = Rnp.new
+    rnp.load_keys(format: 'GPG',
+                  input: Rnp::Input.from_path('spec/data/keyrings/gpg/secring.gpg'))
+    rnp.password_provider = 'password'
+    rnp
+  end
+  let(:key) { rnp.find_key(userid: 'key0-uid1') }
+
+  it 'retains the input and output of a verify operation until execute' do
+    signature = rnp.sign(input: Rnp::Input.from_string('data'),
+                         signers: [key],
+                         armored: false)
+    verify = rnp.start_verify(input: Rnp::Input.from_string(signature),
+                              output: Rnp::Output.to_null)
+    GC.start
+    expect { verify.execute }.to_not raise_error
+  end
+
+  it 'retains the input and output of a sign operation until execute' do
+    sign = rnp.start_sign(input: Rnp::Input.from_string('data'),
+                          output: Rnp::Output.to_string)
+    sign.add_signer(key)
+    GC.start
+    expect { sign.execute }.to_not raise_error
+  end
+
+  it 'retains the input and output of an encrypt operation until execute' do
+    encrypt = rnp.start_encrypt(input: Rnp::Input.from_string('data'),
+                                output: Rnp::Output.to_string)
+    encrypt.add_recipient(key)
+    GC.start
+    expect { encrypt.execute }.to_not raise_error
+  end
+end

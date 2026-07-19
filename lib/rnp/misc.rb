@@ -108,6 +108,21 @@ class Rnp
     LibRnp.rnp_version_string
   end
 
+  # Get the name of the cryptographic backend library (e.g. 'Botan' or
+  # 'OpenSSL').
+  #
+  # @return [String]
+  def self.backend_string
+    LibRnp.rnp_backend_string
+  end
+
+  # Get the version of the cryptographic backend library.
+  #
+  # @return [String]
+  def self.backend_version
+    LibRnp.rnp_backend_version
+  end
+
   # Get the detailed version of the rnp library as a string.
   #
   # @return [String]
@@ -185,6 +200,27 @@ class Rnp
       JSON.parse(pjson.read_string) unless pjson.null?
     ensure
       LibRnp.rnp_buffer_destroy(pjson)
+    end
+  end
+
+  # Dump OpenPGP packet information in human-readable format.
+  #
+  # @param input [Input] the input to read the data
+  # @param output [Output] the output to write the dump to. If nil, the
+  #   result will be returned directly as a String.
+  # @param mpi [Boolean] if true then MPIs will be included
+  # @param raw [Boolean] if true then raw bytes will be included
+  # @param grip [Boolean] if true then grips will be included
+  # @return [nil, String]
+  def self.dump_packets(input:, output: nil, mpi: false, raw: false,
+                        grip: false)
+    flags = 0
+    flags |= LibRnp::RNP_DUMP_MPI if mpi
+    flags |= LibRnp::RNP_DUMP_RAW if raw
+    flags |= LibRnp::RNP_DUMP_GRIP if grip
+    Output.default(output) do |output_|
+      Rnp.call_ffi(:rnp_dump_packets_to_output, input.ptr, output_.ptr,
+                   flags)
     end
   end
 
@@ -288,6 +324,11 @@ class Rnp
     # Now at least one valid signature is required for success
     "require-single-valid-signature" => Rnp.version >= Rnp.version("0.16.1") ||
       Rnp.commit_time >= 1661781294,
+    # rnp_signature_is_valid() was extended to return the validation status
+    # of document signatures and to revalidate key signatures
+    # (RNP_SIGNATURE_REVALIDATE).
+    "signature-validity-status" => Rnp.version >= Rnp.version("0.18.0") ||
+      Rnp.commit_time >= 1742391792,
   }.freeze
 
   def self.has?(feature)

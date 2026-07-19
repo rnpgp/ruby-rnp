@@ -127,6 +127,123 @@ module LibRnp
     # import
     rnp_import_keys: [%i[pointer pointer uint32 pointer], :uint32],
     rnp_import_signatures: [%i[pointer pointer uint32 pointer], :uint32],
+    # security profile
+    rnp_add_security_rule: [%i[pointer string string uint32 uint64 uint32],
+                            :uint32],
+    rnp_get_security_rule: [%i[pointer string string uint64 pointer pointer
+                               pointer], :uint32],
+    rnp_remove_security_rule: [%i[pointer string string uint32 uint32 uint64
+                                  pointer], :uint32],
+    rnp_set_timestamp: [%i[pointer uint64], :uint32],
+    # crypto backend information
+    rnp_backend_string: [%i[], :string],
+    rnp_backend_version: [%i[], :string],
+    # password requesting via the ffi's password provider
+    rnp_request_password: [%i[pointer pointer string pointer], :uint32],
+    # secure buffer clearing
+    rnp_buffer_clear: [%i[pointer size_t], :void],
+    # verification flags and format
+    rnp_op_verify_set_flags: [%i[pointer uint32], :uint32],
+    rnp_op_verify_get_format: [%i[pointer pointer], :uint32],
+    # verification recipients
+    rnp_op_verify_get_recipient_count: [%i[pointer pointer], :uint32],
+    rnp_op_verify_get_used_recipient: [%i[pointer pointer], :uint32],
+    rnp_op_verify_get_recipient_at: [%i[pointer size_t pointer], :uint32],
+    rnp_recipient_get_keyid: [%i[pointer pointer], :uint32],
+    rnp_recipient_get_alg: [%i[pointer pointer], :uint32],
+    # verification password-based (symenc) entries
+    rnp_op_verify_get_symenc_count: [%i[pointer pointer], :uint32],
+    rnp_op_verify_get_used_symenc: [%i[pointer pointer], :uint32],
+    rnp_op_verify_get_symenc_at: [%i[pointer size_t pointer], :uint32],
+    rnp_symenc_get_cipher: [%i[pointer pointer], :uint32],
+    rnp_symenc_get_aead_alg: [%i[pointer pointer], :uint32],
+    rnp_symenc_get_hash_alg: [%i[pointer pointer], :uint32],
+    rnp_symenc_get_s2k_type: [%i[pointer pointer], :uint32],
+    rnp_symenc_get_s2k_iterations: [%i[pointer pointer], :uint32],
+    # signature properties
+    rnp_signature_get_type: [%i[pointer pointer], :uint32],
+    rnp_signature_get_expiration: [%i[pointer pointer], :uint32],
+    rnp_signature_get_features: [%i[pointer pointer], :uint32],
+    rnp_signature_get_key_flags: [%i[pointer pointer], :uint32],
+    rnp_signature_get_key_expiration: [%i[pointer pointer], :uint32],
+    rnp_signature_get_primary_uid: [%i[pointer pointer], :uint32],
+    rnp_signature_get_key_server: [%i[pointer pointer], :uint32],
+    rnp_signature_get_key_server_prefs: [%i[pointer pointer], :uint32],
+    rnp_signature_get_key_fprint: [%i[pointer pointer], :uint32],
+    rnp_signature_get_revoker: [%i[pointer pointer], :uint32],
+    rnp_signature_get_revocation_reason: [%i[pointer pointer pointer], :uint32],
+    rnp_signature_get_trust_level: [%i[pointer pointer pointer], :uint32],
+    rnp_signature_get_preferred_alg_count: [%i[pointer pointer], :uint32],
+    rnp_signature_get_preferred_alg: [%i[pointer size_t pointer], :uint32],
+    rnp_signature_get_preferred_hash_count: [%i[pointer pointer], :uint32],
+    rnp_signature_get_preferred_hash: [%i[pointer size_t pointer], :uint32],
+    rnp_signature_get_preferred_zalg_count: [%i[pointer pointer], :uint32],
+    rnp_signature_get_preferred_zalg: [%i[pointer size_t pointer], :uint32],
+    rnp_signature_is_valid: [%i[pointer uint32], :uint32],
+    rnp_signature_export: [%i[pointer pointer uint32], :uint32],
+    rnp_signature_remove: [%i[pointer pointer], :uint32],
+    # signature subpackets
+    rnp_signature_subpacket_count: [%i[pointer pointer], :uint32],
+    rnp_signature_subpacket_at: [%i[pointer size_t pointer], :uint32],
+    rnp_signature_subpacket_find: [%i[pointer uint8 bool size_t pointer],
+                                   :uint32],
+    rnp_signature_subpacket_info: [%i[pointer pointer pointer pointer],
+                                   :uint32],
+    rnp_signature_subpacket_data: [%i[pointer pointer pointer], :uint32],
+    rnp_signature_subpacket_destroy: [%i[pointer], :uint32],
+    # key signature creation/editing
+    rnp_key_certification_create: [%i[pointer pointer string pointer], :uint32],
+    rnp_key_direct_signature_create: [%i[pointer pointer pointer], :uint32],
+    rnp_key_revocation_signature_create: [%i[pointer pointer pointer], :uint32],
+    rnp_key_signature_set_hash: [%i[pointer string], :uint32],
+    rnp_key_signature_set_creation: [%i[pointer uint32], :uint32],
+    rnp_key_signature_set_key_flags: [%i[pointer uint32], :uint32],
+    rnp_key_signature_set_key_expiration: [%i[pointer uint32], :uint32],
+    rnp_key_signature_set_features: [%i[pointer uint32], :uint32],
+    rnp_key_signature_add_preferred_alg: [%i[pointer string], :uint32],
+    rnp_key_signature_add_preferred_hash: [%i[pointer string], :uint32],
+    rnp_key_signature_add_preferred_zalg: [%i[pointer string], :uint32],
+    rnp_key_signature_set_primary_uid: [%i[pointer bool], :uint32],
+    rnp_key_signature_set_key_server: [%i[pointer string], :uint32],
+    rnp_key_signature_set_key_server_prefs: [%i[pointer uint32], :uint32],
+    rnp_key_signature_set_revocation_reason: [%i[pointer string string],
+                                              :uint32],
+    rnp_key_signature_set_revoker: [%i[pointer pointer uint32], :uint32],
+    rnp_key_signature_set_trust_level: [%i[pointer uint8 uint8], :uint32],
+    rnp_key_signature_sign: [%i[pointer], :uint32],
+    rnp_key_remove_signatures: [%i[pointer uint32 pointer pointer], :uint32],
+    # key properties
+    rnp_key_get_version: [%i[pointer pointer], :uint32],
+    rnp_key_is_expired: [%i[pointer pointer], :uint32],
+    rnp_key_is_valid: [%i[pointer pointer], :uint32],
+    rnp_key_valid_till: [%i[pointer pointer], :uint32],
+    rnp_key_valid_till64: [%i[pointer pointer], :uint32],
+    rnp_key_get_revoker_count: [%i[pointer pointer], :uint32],
+    rnp_key_get_revoker_at: [%i[pointer size_t pointer], :uint32],
+    rnp_key_get_primary_fprint: [%i[pointer pointer], :uint32],
+    rnp_key_get_protection_type: [%i[pointer pointer], :uint32],
+    rnp_key_get_protection_mode: [%i[pointer pointer], :uint32],
+    rnp_key_get_protection_cipher: [%i[pointer pointer], :uint32],
+    rnp_key_get_protection_hash: [%i[pointer pointer], :uint32],
+    rnp_key_get_protection_iterations: [%i[pointer pointer], :uint32],
+    rnp_key_get_revocation_signature: [%i[pointer pointer], :uint32],
+    # key generation (op)
+    rnp_op_generate_set_request_password: [%i[pointer bool], :uint32],
+    # encryption flags
+    rnp_op_encrypt_set_flags: [%i[pointer uint32], :uint32],
+    # armor output
+    rnp_output_to_armor: [%i[pointer pointer string], :uint32],
+    rnp_output_armor_set_line_length: [%i[pointer size_t], :uint32],
+    # output finalization
+    rnp_output_finish: [%i[pointer], :uint32],
+    # packet dumping (human-readable)
+    rnp_dump_packets_to_output: [%i[pointer pointer uint32], :uint32],
+    # stdio convenience streams
+    rnp_input_from_stdin: [%i[pointer], :uint32],
+    rnp_output_to_stdout: [%i[pointer], :uint32],
+    # Curve25519 secret key bit tweaking
+    rnp_key_25519_bits_tweak: [%i[pointer], :uint32],
+    rnp_key_25519_bits_tweaked: [%i[pointer pointer], :uint32],
   }.each do |name, signature|
     present = !ffi_libraries[0].find_function(name.to_s).nil?
     if !present
@@ -218,6 +335,39 @@ module LibRnp
   attach_function :rnp_key_handle_destroy,
                   %i[pointer],
                   :uint32
+  attach_function :rnp_uid_get_data,
+                  %i[pointer pointer pointer],
+                  :uint32
+  attach_function :rnp_uid_get_type,
+                  %i[pointer pointer],
+                  :uint32
+  attach_function :rnp_uid_is_primary,
+                  %i[pointer pointer],
+                  :uint32
+  attach_function :rnp_uid_is_valid,
+                  %i[pointer pointer],
+                  :uint32
+  attach_function :rnp_uid_get_revocation_signature,
+                  %i[pointer pointer],
+                  :uint32
+  attach_function :rnp_uid_remove,
+                  %i[pointer pointer],
+                  :uint32
+  attach_function :rnp_key_revoke,
+                  %i[pointer uint32 string string string],
+                  :uint32
+  attach_function :rnp_key_set_expiration,
+                  %i[pointer uint32],
+                  :uint32
+  attach_function :rnp_key_get_default_key,
+                  %i[pointer string uint32 pointer],
+                  :uint32
+  attach_function :rnp_key_export_autocrypt,
+                  %i[pointer pointer string pointer uint32],
+                  :uint32
+  attach_function :rnp_key_export_revocation,
+                  %i[pointer pointer uint32 string string string],
+                  :uint32
   attach_function :rnp_generate_key_json,
                   %i[pointer string pointer],
                   :uint32
@@ -296,6 +446,12 @@ module LibRnp
   attach_function :rnp_op_sign_set_compression,
                   %i[pointer string int],
                   :uint32
+  attach_function :rnp_op_sign_set_file_name,
+                  %i[pointer string],
+                  :uint32
+  attach_function :rnp_op_sign_set_file_mtime,
+                  %i[pointer uint32],
+                  :uint32
   attach_function :rnp_op_sign_set_armor,
                   %i[pointer bool],
                   :uint32
@@ -331,6 +487,9 @@ module LibRnp
                   :uint32
   attach_function :rnp_op_verify_get_file_info,
                   %i[pointer pointer pointer],
+                  :uint32
+  attach_function :rnp_op_verify_get_protection_info,
+                  %i[pointer pointer pointer pointer],
                   :uint32
   attach_function :rnp_op_verify_destroy,
                   %i[pointer],
@@ -377,6 +536,12 @@ module LibRnp
   attach_function :rnp_output_to_null,
                   %i[pointer],
                   :uint32
+  attach_function :rnp_output_to_file,
+                  %i[pointer string uint32],
+                  :uint32
+  attach_function :rnp_output_pipe,
+                  %i[pointer pointer],
+                  :uint32
   attach_function :rnp_output_destroy,
                   %i[pointer],
                   :uint32
@@ -410,6 +575,15 @@ module LibRnp
   attach_function :rnp_op_encrypt_set_compression,
                   %i[pointer string int],
                   :uint32
+  attach_function :rnp_op_encrypt_set_file_name,
+                  %i[pointer string],
+                  :uint32
+  attach_function :rnp_op_encrypt_set_file_mtime,
+                  %i[pointer uint32],
+                  :uint32
+  attach_function :rnp_op_encrypt_set_aead_bits,
+                  %i[pointer int],
+                  :uint32
   attach_function :rnp_op_encrypt_execute,
                   %i[pointer],
                   :uint32
@@ -442,6 +616,18 @@ module LibRnp
   RNP_KEY_EXPORT_PUBLIC =  (1 << 1)
   RNP_KEY_EXPORT_SECRET =  (1 << 2)
   RNP_KEY_EXPORT_SUBKEYS = (1 << 3)
+  RNP_KEY_EXPORT_BASE64 =  (1 << 9)
+
+  # flags for rnp_output_to_file
+  RNP_OUTPUT_FILE_OVERWRITE = (1 << 0)
+  RNP_OUTPUT_FILE_RANDOM = (1 << 1)
+
+  # flags for default key selection
+  RNP_KEY_SUBKEYS_ONLY = (1 << 0)
+
+  # user id types
+  RNP_USER_ID = 1
+  RNP_USER_ATTR = 2
 
   RNP_LOAD_SAVE_PUBLIC_KEYS = (1 << 0)
   RNP_LOAD_SAVE_SECRET_KEYS = (1 << 1)
@@ -461,10 +647,60 @@ module LibRnp
   RNP_JSON_DUMP_RAW = (1 << 1)
   RNP_JSON_DUMP_GRIP = (1 << 2)
 
+  RNP_DUMP_MPI = (1 << 0)
+  RNP_DUMP_RAW = (1 << 1)
+  RNP_DUMP_GRIP = (1 << 2)
+
+  # predefined feature security levels
+  RNP_SECURITY_PROHIBITED = 0
+  RNP_SECURITY_INSECURE = 1
+  RNP_SECURITY_DEFAULT = 2
+
+  # flags for feature security rules
+  RNP_SECURITY_OVERRIDE = (1 << 0)
+  RNP_SECURITY_VERIFY_KEY = (1 << 1)
+  RNP_SECURITY_VERIFY_DATA = (1 << 2)
+  RNP_SECURITY_REMOVE_ALL = (1 << 16)
+
+  # encryption flags
+  RNP_ENCRYPT_NOWRAP = (1 << 0)
+
+  # decryption/verification flags
+  RNP_VERIFY_IGNORE_SIGS_ON_DECRYPT = (1 << 0)
+  RNP_VERIFY_REQUIRE_ALL_SIGS = (1 << 1)
+  RNP_VERIFY_ALLOW_HIDDEN_RECIPIENT = (1 << 2)
+
+  # revocation key flags
+  RNP_REVOKER_SENSITIVE = (1 << 0)
+
+  # key feature flags
+  RNP_KEY_FEATURE_MDC = (1 << 0)
+  RNP_KEY_FEATURE_AEAD = (1 << 1)
+  RNP_KEY_FEATURE_V5 = (1 << 2)
+
+  # key usage flags
+  RNP_KEY_USAGE_CERTIFY = (1 << 0)
+  RNP_KEY_USAGE_SIGN = (1 << 1)
+  RNP_KEY_USAGE_ENCRYPT_COMMS = (1 << 2)
+  RNP_KEY_USAGE_ENCRYPT_STORAGE = (1 << 3)
+
+  # key server preferences flags
+  RNP_KEY_SERVER_NO_MODIFY = (1 << 7)
+
+  # signature validation flags
+  RNP_SIGNATURE_REVALIDATE = (1 << 0)
+
+  # flags for rnp_key_remove_signatures
+  RNP_KEY_SIGNATURE_INVALID = (1 << 0)
+  RNP_KEY_SIGNATURE_UNKNOWN_KEY = (1 << 1)
+  RNP_KEY_SIGNATURE_NON_SELF_SIG = (1 << 2)
+
   RNP_SUCCESS = 0
+  RNP_ERROR_NOT_FOUND =        0x10000008
   RNP_ERROR_BAD_FORMAT =        0x10000001
   RNP_ERROR_SIGNATURE_INVALID = 0x12000002
   RNP_ERROR_BAD_PASSWORD =      0x12000004
+  RNP_ERROR_KEY_NOT_FOUND =     0x12000005
   RNP_ERROR_NO_SUITABLE_KEY =   0x12000006
   RNP_ERROR_SIGNATURE_EXPIRED = 0x1200000B
 end # module
