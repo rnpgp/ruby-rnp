@@ -69,6 +69,37 @@ class Rnp
       Output.new(pptr.read_pointer)
     end
 
+    # Create an Output to write to a file, with additional options.
+    #
+    # @param path [String] the path
+    # @param overwrite [Boolean] if true, an existing file will be
+    #   overwritten
+    # @param random [Boolean] if true, the data is first written to a
+    #   random-named temporary file, which is renamed to the target path
+    #   when the output is finished. You may want to call {#finish} to
+    #   make sure the final rename succeeded.
+    # @return [Output]
+    def self.to_file(path, overwrite: false, random: false)
+      flags = 0
+      flags |= LibRnp::RNP_OUTPUT_FILE_OVERWRITE if overwrite
+      flags |= LibRnp::RNP_OUTPUT_FILE_RANDOM if random
+      pptr = FFI::MemoryPointer.new(:pointer)
+      Rnp.call_ffi(:rnp_output_to_file, pptr, path, flags)
+      Output.new(pptr.read_pointer)
+    end
+
+    # Create an Output to write to the standard output.
+    #
+    # @note This is a convenience wrapper for command-line usage. It
+    #   requires librnp 0.16.0 or newer.
+    #
+    # @return [Output]
+    def self.to_stdout
+      pptr = FFI::MemoryPointer.new(:pointer)
+      Rnp.call_ffi(:rnp_output_to_stdout, pptr)
+      Output.new(pptr.read_pointer)
+    end
+
     # Create an Output to discard all writes.
     #
     # @return [Output]
@@ -191,6 +222,14 @@ class Rnp
     # @return [void]
     def finish
       Rnp.call_ffi(:rnp_output_finish, @ptr)
+    end
+
+    # Read all data from the input and write it to this output.
+    #
+    # @param input [Input] the input to read from
+    # @return [void]
+    def pipe_from(input)
+      Rnp.call_ffi(:rnp_output_pipe, input.ptr, @ptr)
     end
 
     # @api private

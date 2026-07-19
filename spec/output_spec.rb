@@ -3,6 +3,7 @@
 # (c) 2020 Ribose Inc.
 
 require 'json'
+require 'tempfile'
 
 require 'spec_helper'
 
@@ -77,6 +78,73 @@ describe Rnp::Output.method(:to_armor),
       expect do
         Rnp::Output.to_string.armor_line_length = 24
       end.to raise_error(Rnp::Error)
+    end
+  end
+end
+
+describe Rnp::Output.method(:to_file) do
+  let(:path) do
+    f = Tempfile.new(['ruby-rnp', '.tmp'])
+    path = f.path
+    f.close
+    f.unlink
+    path
+  end
+
+  after { File.unlink(path) if File.exist?(path) }
+
+  it 'writes to the file' do
+    output = Rnp::Output.to_file(path)
+    output.write('file contents')
+    output.finish
+    expect(File.read(path)).to eql 'file contents'
+  end
+
+  it 'refuses to overwrite an existing file by default' do
+    File.write(path, 'existing')
+    expect { Rnp::Output.to_file(path) }.to raise_error(Rnp::Error)
+    expect(File.read(path)).to eql 'existing'
+  end
+
+  it 'overwrites an existing file when requested' do
+    File.write(path, 'existing')
+    output = Rnp::Output.to_file(path, overwrite: true)
+    output.write('replaced')
+    output.finish
+    expect(File.read(path)).to eql 'replaced'
+  end
+
+  it 'writes via a random temporary name with random: true' do
+    output = Rnp::Output.to_file(path, random: true)
+    output.write('atomic contents')
+    output.finish
+    expect(File.read(path)).to eql 'atomic contents'
+  end
+end
+
+describe Rnp::Output.instance_method(:pipe_from) do
+  it 'copies the input to the output' do
+    output = Rnp::Output.to_string
+    output.pipe_from(Rnp::Input.from_string('piped data'))
+    expect(output.string).to eql 'piped data'
+  end
+end
+
+describe Rnp::Output.method(:to_stdout),
+         skip: !LibRnp::HAVE_RNP_OUTPUT_TO_STDOUT do
+  it 'writes to the standard output' do
+    Tempfile.create('ruby-rnp-stdout') do |file|
+      orig = $stdout.dup
+      begin
+        $stdout.reopen(file)
+        output = Rnp::Output.to_stdout
+        output.write('stdout data')
+        output.finish
+      ensure
+        $stdout.reopen(orig)
+        orig.close
+      end
+      expect(File.read(file.path)).to eql 'stdout data'
     end
   end
 end

@@ -66,6 +66,18 @@ class Rnp
       Input.new(pptr.read_pointer)
     end
 
+    # Create an Input to read from the standard input.
+    #
+    # @note This is a convenience wrapper for command-line usage. It
+    #   requires librnp 0.16.0 or newer.
+    #
+    # @return [Input]
+    def self.from_stdin
+      pptr = FFI::MemoryPointer.new(:pointer)
+      Rnp.call_ffi(:rnp_input_from_stdin, pptr)
+      Input.new(pptr.read_pointer)
+    end
+
     # Create an Input to read from an IO object.
     #
     # @param io [IO, #read] the IO object
