@@ -17,9 +17,13 @@ class Rnp
     attr_reader :ptr
 
     # @api private
-    def initialize(ptr)
+    def initialize(ptr, input = nil, output = nil)
       raise Rnp::Error, 'NULL pointer' if ptr.null?
       @ptr = FFI::AutoPointer.new(ptr, self.class.method(:destroy))
+      # retain the input and output so they are not garbage collected
+      # before the operation is executed
+      @input = input
+      @output = output
     end
 
     # @api private
