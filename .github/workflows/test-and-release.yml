@@ -132,8 +132,7 @@ jobs:
     needs: build-and-test
     permissions:
       contents: write
-    env:
-      RNP_RUBYGEMS_API_KEY: ${{ secrets.RNP_RUBYGEMS_API_KEY }}
+      id-token: write
     steps:
     - name: Install packages Ubuntu
 #     build-essential is preinstalled on GHA; libbz2-dev/zlib1g-dev are not on ubuntu-24.04
@@ -173,16 +172,12 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: gh release create "$GITHUB_REF_NAME" pkg/*.gem --generate-notes
 
+    # Exchange the job's OIDC token (id-token: write) for a short-lived
+    # RubyGems API key; publishes via the gem's trusted publisher
+    # (rnpgp/ruby-rnp @ test-and-release.yml) on rubygems.org.
+    - name: Configure RubyGems credentials (trusted publishing)
+      uses: rubygems/configure-rubygems-credentials@dc5a8d8553e6ee01fc26761a49e99e733d17954a # v2.1.0
+
     - name: Publish to rubygems.org
-      # skipped unless the RNP_RUBYGEMS_API_KEY secret is configured
-      if: ${{ env.RNP_RUBYGEMS_API_KEY != '' }}
       run: |
-        mkdir -p ~/.gem
-        touch ~/.gem/credentials
-        cat > ~/.gem/credentials << EOF
-        ---
-        :rubygems_api_key: ${RNP_RUBYGEMS_API_KEY}
-        EOF
-        chmod 0600 ~/.gem/credentials
-        gem signin
         for gem in pkg/*.gem; do gem push -V $gem; done
